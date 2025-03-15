@@ -1,4 +1,4 @@
-package com.example.the7thcitadel;
+package com.tvz.avuckovic.the7thcitadel;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
