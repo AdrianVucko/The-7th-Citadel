@@ -1,4 +1,4 @@
-package com.example.the7thcitadel;
+package com.tvz.avuckovic.the7thcitadel.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;

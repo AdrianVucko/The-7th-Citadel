@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.tvz.avuckovic.the7thcitadel.RootController">
+    <top>
+        <MenuBar>
+            <Menu text="Game">
+                <MenuItem onAction="#displayGame" text="New Game"/>
+                <MenuItem fx:id="saveMenuItem" text="Save Game"/>
+                <MenuItem text="Load Game"/>
+            </Menu>
+            <Menu text="Help">
+                <MenuItem onAction="#displayRules" text="Rules"/>
+                <MenuItem onAction='#displayAbout' text="About"/>
+            </Menu>
+        </MenuBar>
+    </top>
+
+    <center>
+        <StackPane fx:id="sceneContainer"/>
+    </center>
+</BorderPane>

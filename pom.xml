@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.example</groupId>
+    <groupId>com.tvz.avuckovic</groupId>
     <artifactId>The-7th-Citadel</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>The-7th-Citadel</name>
@@ -42,6 +42,12 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.38</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -64,7 +70,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.example.the7thcitadel/com.example.the7thcitadel.TheSeventhCitadelApplication</mainClass>
+                            <mainClass>com.tvz.avuckovic.the7thcitadel/com.tvz.avuckovic.the7thcitadel.TheSeventhCitadelApplication</mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
                             <jlinkImageName>app</jlinkImageName>

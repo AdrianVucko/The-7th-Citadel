@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TextArea?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.geometry.Insets?>
+<BorderPane>
+    <center>
+        <TextArea wrapText="true"
+                  editable="false"
+                  text="
+The 7th Citadel is a cooperative exploration and adventure board game with mechanics inspired by choose-your-own-adventure books.&#10;&#10;
+In The 7th Citadel, you face a Threat which will inevitably come down on you (unless you perish before you get there!).&#10;
+Each Threat comes in the form of a booklet comprising several scenarios that follow one another, until the final scenario where you either win the game or succumb to the Threat.&#10;
+The 7th Citadel carries over the best aspects of The 7th Continent: huge territory to explore, hidden numbers to spot, botany, etc.&#10;
+Each Threat will take you through many hours of adventure. To make this manageable, the game includes a simple yet effective saving system that allows you to quickly interrupt the game at any time and have it ready for your next session, just like in a video game.&#10;
+This game was funded via Kickstarter with the support of 33 353 backers.&#10;&#10;
+The 7th Citadel carries over the best aspects of The 7th Continent: huge territory to explore, hidden numbers to spot, botany, etc.However, many changes make it a brand new game:&#10;&#10;
+- An original, post-apocalyptic medieval fantasy setting to discover&#10;
+- The game is less about survival (crafting, hunting, die-and-retry) and more about narrative adventure&#10;
+- Customize your personal Action Deck, choosing your skills to make your character unique&#10;
+- Interact with the many inhabitants (NPCs) of these lands thanks to more than 600 dialogues&#10;
+- Send scouts to map the Collapsing Lands and update your old world map&#10;
+- Return to the Citadel between two scenarios, and build many helpful buildings to use their abilities for the rest of your adventure&#10;">
+        <padding>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+            </padding>
+        </TextArea>
+    </center>
+</BorderPane>

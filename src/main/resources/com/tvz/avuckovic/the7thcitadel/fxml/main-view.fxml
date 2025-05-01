@@ -1,36 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.the7thcitadel.MainController">
-
-    <!-- Top Menu -->
-    <top>
-        <MenuBar>
-            <Menu text="Game">
-                <MenuItem text="New Game"/>
-                <MenuItem text="Load Game"/>
-                <MenuItem text="Save Game"/>
-            </Menu>
-            <Menu text="Help">
-                <MenuItem text="Rules"/>
-                <MenuItem text="About"/>
-            </Menu>
-        </MenuBar>
-    </top>
-
-    <!-- Left Sidebar: Player Info -->
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.tvz.avuckovic.the7thcitadel.controller.MainController">
+    <!-- Player Info -->
     <left>
         <VBox spacing="10">
             <padding>
@@ -44,18 +19,17 @@
         </VBox>
     </left>
 
-    <!-- Center: Game Board -->
+    <!-- Game Board -->
     <center>
-        <StackPane fx:id="gameBoard" style="-fx-background-color: #2e2e2e;"> <!--style="game-board"-->
+        <StackPane fx:id="gameBoard" styleClass="game-board">
             <padding>
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
-            <!-- You can dynamically add tiles/cards here via controller -->
             <Label text="Game Board Area" textFill="white"/>
         </StackPane>
     </center>
 
-    <!-- Right: Action Buttons / Card Hand -->
+    <!-- Action Buttons / Card Hand -->
     <right>
         <VBox spacing="10">
             <padding>
@@ -74,7 +48,7 @@
         </VBox>
     </right>
 
-    <!-- Bottom: Log / Messages -->
+    <!-- Log / Messages -->
     <bottom>
         <TextArea fx:id="gameLog" prefRowCount="4" editable="false" wrapText="true"/>
     </bottom>
