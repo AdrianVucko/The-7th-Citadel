@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.tvz.avuckovic.the7thcitadel.controller.MainController">
+    <!-- Player Info -->
+    <left>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <Label text="Player Info" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+            <Label text="Health: 10/10"/>
+            <Label text="Energy: 5"/>
+            <Label text="Inventory:"/>
+            <ListView fx:id="inventoryList"/>
+        </VBox>
+    </left>
+
+    <!-- Game Board -->
+    <center>
+        <StackPane fx:id="gameBoard" styleClass="game-board">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <Label text="Game Board Area" textFill="white"/>
+        </StackPane>
+    </center>
+
+    <!-- Action Buttons / Card Hand -->
+    <right>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <Label text="Actions" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+            <Button text="Explore"/>
+            <Button text="Rest"/>
+            <Button text="Use Item" onAction="#useItem"/>
+            <Label text="Card Hand:"/>
+            <ListView fx:id="cardsListView" prefHeight="600" />
+        </VBox>
+    </right>
+
+    <!-- Log / Messages -->
+    <bottom>
+        <TextArea fx:id="gameLog" prefRowCount="4" editable="false" wrapText="true"/>
+    </bottom>
+
+</BorderPane>

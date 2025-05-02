@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.BorderPane?>
+<BorderPane>
+   <center>
+      <TextArea
+              wrapText="true"
+              editable="false"
+              text="
+The 7th Citadel - Basic Rules Summary&#10;&#10;
+Objective:&#10;
+- Cooperative adventure game to defeat a looming Threat&#10;
+- Win: Overcome the selected Threat&#10;
+- Lose: All characters unconscious OR &quot;Your adventure ends here.&quot; message appears&#10;&#10;
+Game Flow:&#10;
+1. Choose a Threat and scenario&#10;
+2. Explore using Exploration cards&#10;
+3. Take actions from Terrain, Events, or Items&#10;&#10;
+Turn Sequence:&#10;
+1. Choose Active Player and Action&#10;
+2. Others may assist&#10;
+3. Resolve: Gear up, Draw, Result, Consequences&#10;
+4. Start new turn&#10;&#10;
+Action Mechanics:&#10;
+- Cost: Cards drawn&#10;
+- Difficulty: Successes needed&#10;
+- Steps: Gear up → Draw → Count Successes → Apply Consequences&#10;&#10;
+Components:&#10;
+- Character, Action, Exploration, Adventure, Purse, and Quest cards&#10;&#10;
+Additional Rules:&#10;
+- Save System, Recovery, Unconsciousness, Compound Actions, Keywords">
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+         </padding>
+      </TextArea>
+   </center>
+</BorderPane>
