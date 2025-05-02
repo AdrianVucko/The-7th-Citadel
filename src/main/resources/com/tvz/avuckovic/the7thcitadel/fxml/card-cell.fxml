@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:id="root"
+            fx:controller="com.tvz.avuckovic.the7thcitadel.controller.CardCellController"
+            style="-fx-padding: 10; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-width: 2; -fx-border-color: black;">
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <ImageView fx:id="typeIcon" fitHeight="32" fitWidth="32" />
+        <VBox>
+            <Label fx:id="descriptionLabel" wrapText="true" style="-fx-font-size: 14;" />
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="flagIndicator" style="-fx-font-size: 18;" />
+    </HBox>
+</AnchorPane>

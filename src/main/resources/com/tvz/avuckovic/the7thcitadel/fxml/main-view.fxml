@@ -2,8 +2,9 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.tvz.avuckovic.the7thcitadel.controller.MainController">
     <!-- Player Info -->
     <left>
@@ -38,13 +39,9 @@
             <Label text="Actions" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
             <Button text="Explore"/>
             <Button text="Rest"/>
-            <Button text="Use Item"/>
+            <Button text="Use Item" onAction="#useItem"/>
             <Label text="Card Hand:"/>
-            <HBox spacing="5">
-                <ImageView fitHeight="80" fitWidth="60"/>
-                <ImageView fitHeight="80" fitWidth="60"/>
-                <!-- Add more dynamically -->
-            </HBox>
+            <ListView fx:id="cardsListView" prefHeight="600" />
         </VBox>
     </right>
 

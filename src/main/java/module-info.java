@@ -9,4 +9,5 @@ module com.example.the7thcitadel {
     exports com.tvz.avuckovic.the7thcitadel;
     exports com.tvz.avuckovic.the7thcitadel.controller;
     opens com.tvz.avuckovic.the7thcitadel.controller to javafx.fxml;
+    opens com.tvz.avuckovic.the7thcitadel.model to javafx.base;
 }
