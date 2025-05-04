@@ -1,12 +1,14 @@
 package com.tvz.avuckovic.the7thcitadel.controller;
 
 import com.tvz.avuckovic.the7thcitadel.component.CardCell;
+import com.tvz.avuckovic.the7thcitadel.component.GameMap;
 import com.tvz.avuckovic.the7thcitadel.model.Card;
 import com.tvz.avuckovic.the7thcitadel.utils.CardUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 
 import java.net.URL;
@@ -15,18 +17,23 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
+    private List<Card> allCards;
     private List<Card> playerCards;
     @FXML public StackPane gameBoard;
     @FXML public TextArea gameLog;
     @FXML public ListView<Card> cardsListView;
+    @FXML public GameMap gameMap;
+    @FXML public Pane progressDraw;
     @FXML public ListView<?> inventoryList;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        List<Card> allCards = CardUtils.loadCards();
-        playerCards = CardUtils.drawShuffledCards(allCards);
+        allCards = CardUtils.loadCards();
+        playerCards = CardUtils.drawShuffledActionCards(allCards);
         cardsListView.setCellFactory(list -> new CardCell());
         cardsListView.getItems().setAll(playerCards);
+        progressDraw.setPickOnBounds(false);
+        gameMap.connectComponents(progressDraw, gameLog);
     }
 
     public void useItem() {

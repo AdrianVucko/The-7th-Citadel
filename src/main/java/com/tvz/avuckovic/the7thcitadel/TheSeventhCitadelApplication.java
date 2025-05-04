@@ -1,9 +1,16 @@
 package com.tvz.avuckovic.the7thcitadel;
 
+import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
+import com.tvz.avuckovic.the7thcitadel.model.ApplicationConfiguration;
+import com.tvz.avuckovic.the7thcitadel.model.Message;
+import com.tvz.avuckovic.the7thcitadel.model.PlayerType;
+import com.tvz.avuckovic.the7thcitadel.utils.DialogUtils;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
@@ -11,15 +18,19 @@ import java.io.IOException;
 import java.util.Objects;
 
 public class TheSeventhCitadelApplication extends Application {
+    public static final ApplicationConfiguration applicationConfiguration = new ApplicationConfiguration();
+
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(TheSeventhCitadelApplication.class.getResource("fxml/root-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(TheSeventhCitadelApplication.class.getResource(
+                GameConstants.Page.ROOT_FOLDER + GameConstants.Page.ROOT));
         Scene scene = new Scene(fxmlLoader.load());
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("styles/main-view.css")).toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource(
+                GameConstants.UI.STYLE_ROOT_FOLDER + GameConstants.UI.THEME)).toExternalForm());
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
 
-        stage.setTitle("The 7th Citadel");
+        stage.setTitle(GameConstants.UI.TITLE);
         stage.setScene(scene);
         // Full screen
         stage.setX(bounds.getMinX());
@@ -29,7 +40,15 @@ public class TheSeventhCitadelApplication extends Application {
         stage.show();
     }
 
-    public static void main() {
-        launch();
+    public static void main(String[] args) {
+        if(args.length > 0) {
+            applicationConfiguration.setPlayerType(PlayerType.valueOf(args[0]));
+            launch();
+        }
+        else {
+            Platform.runLater(() -> DialogUtils.showDialog(
+                    Alert.AlertType.ERROR, Message.START_APPLICATION_ERROR_MESSAGE.getText(),
+                    Message.START_APPLICATION_ERROR_MESSAGE.getText(), ""));
+        }
     }
 }
