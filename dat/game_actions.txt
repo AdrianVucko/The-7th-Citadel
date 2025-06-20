@@ -1,0 +1,21 @@
+Description;Skill Type;Skill Cards Needed;Points Needed;HP Gain (Success);HP Loss (Failure)
+Climb the ivy-covered wall;REFLEX;1;2;2;1
+Convince the wounded guard to speak;CHARACTER;2;3;1;1
+Dig through loose soil;ADVANCED;1;2;2;1
+Calm the panicked villager;CHARACTER;1;1;2;1
+Cross the unstable rope bridge;REFLEX;2;4;3;2
+Translate the glyphs etched into stone;ADVANCED;1;3;2;2
+Break open the sealed door;ADVANCED;2;3;2;2
+Distract the creeping root beast;REFLEX;1;2;1;1
+Steal from the merchant’s unattended stall;CHARACTER;1;3;2;2
+Chase down the thief through narrow alleys;REFLEX;2;4;3;3
+Patch the leaking boat;ADVANCED;1;2;2;1
+Forage in the toxic garden;CHARACTER;1;3;2;2
+Light the ancient brazier;ADVANCED;1;2;1;1
+Bargain with the suspicious merchant;CHARACTER;1;2;2;1
+Push aside the stone slab;ADVANCED;2;3;3;2
+Memorize the complex ritual sequence;ADVANCED;1;2;2;2
+Escape the collapsing tunnel;REFLEX;2;4;3;2
+Hide from patrolling sentinels;REFLEX;1;2;2;1
+Match the statue’s pose to open the door;ADVANCED;1;2;2;1
+Improvise a distraction in the marketplace;CHARACTER;1;2;2;2

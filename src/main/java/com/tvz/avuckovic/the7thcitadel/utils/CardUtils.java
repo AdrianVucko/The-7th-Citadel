@@ -5,8 +5,6 @@ import com.tvz.avuckovic.the7thcitadel.model.*;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-import java.io.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -33,37 +31,19 @@ public class CardUtils {
     }
 
     public static List<Card> loadCards() {
-        File file = new File("dat/cards.ser");
-        if(!file.exists()) {
+        if(!FileUtils.fileExists("dat/cards.ser")) {
             return saveCards();
         }
-
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("dat/cards.ser"))) {
-            return (List<Card>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException("An error occured while loading cards!", e);
-        }
+        return FileUtils.loadObjectsFromFile("dat/cards.ser");
     }
 
     private static List<Card> saveCards() {
-        try (BufferedReader reader = new BufferedReader(new FileReader("dat/cards.txt"));
-                ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("dat/cards.ser"))) {
-            List<Card> cards = new ArrayList<>();
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                //Empty string if there is no entry for column
-                line = line.replaceAll(";(?=;|$)", "; ");
-                String[] cardAttributes = line.split(";");
-
-                cards.add(buildCardFromAttributes(cardAttributes));
-            }
-
-            out.writeObject(cards);
-            return cards;
-        } catch (IOException e) {
-            throw new RuntimeException("An error occured while saving cards!", e);
-        }
+        List<Card> cards = FileUtils
+                .readRowAttributesForFile("dat/cards.txt", false).stream()
+                .map(CardUtils::buildCardFromAttributes)
+                .collect(Collectors.toList());
+        FileUtils.writeObjects("dat/cards.ser", cards);
+        return cards;
     }
 
     private static Card buildCardFromAttributes(String[] cardAttributes) {
@@ -92,6 +72,9 @@ public class CardUtils {
     }
 
     private static ExplorationArea evaluateExplorationArea(String description) {
+        if(description.equals("Area intro")) {
+            return ExplorationArea.FIRST;
+        }
         return Arrays.stream(ExplorationArea.values())
                 .filter(explorationArea -> explorationArea.getFullDescription().equals(description))
                 .findFirst()

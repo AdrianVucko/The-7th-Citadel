@@ -6,7 +6,6 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum ExplorationArea {
-    INTRO("Area intro"),
     FIRST("Area I"),
     SECOND("Area II"),
     THIRD("Area III"),

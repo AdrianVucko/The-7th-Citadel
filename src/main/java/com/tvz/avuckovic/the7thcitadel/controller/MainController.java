@@ -3,6 +3,8 @@ package com.tvz.avuckovic.the7thcitadel.controller;
 import com.tvz.avuckovic.the7thcitadel.component.CardCell;
 import com.tvz.avuckovic.the7thcitadel.component.GameMap;
 import com.tvz.avuckovic.the7thcitadel.model.Card;
+import com.tvz.avuckovic.the7thcitadel.model.GameAction;
+import com.tvz.avuckovic.the7thcitadel.utils.GameActionUtils;
 import com.tvz.avuckovic.the7thcitadel.utils.CardUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -17,8 +19,8 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
-    private List<Card> allCards;
     private List<Card> playerCards;
+    private List<GameAction> gameActions;
     @FXML public StackPane gameBoard;
     @FXML public TextArea gameLog;
     @FXML public ListView<Card> cardsListView;
@@ -28,8 +30,9 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        allCards = CardUtils.loadCards();
+        List<Card> allCards = CardUtils.loadCards();
         playerCards = CardUtils.drawShuffledActionCards(allCards);
+        gameActions = GameActionUtils.loadGameActions();
         cardsListView.setCellFactory(list -> new CardCell());
         cardsListView.getItems().setAll(playerCards);
         progressDraw.setPickOnBounds(false);
