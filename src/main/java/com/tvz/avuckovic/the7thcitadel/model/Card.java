@@ -13,6 +13,8 @@ public class Card implements Serializable {
     private String id;
     private CardType type;
     private String description;
+    private SkillType skillType;
+    private ExplorationArea explorationArea;
     private CardBackColor backColor;
     private CardFlag flag;
 }

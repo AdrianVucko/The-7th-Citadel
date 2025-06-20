@@ -1,29 +1,35 @@
 package com.tvz.avuckovic.the7thcitadel.utils;
 
-import com.tvz.avuckovic.the7thcitadel.model.Card;
-import com.tvz.avuckovic.the7thcitadel.model.CardBackColor;
-import com.tvz.avuckovic.the7thcitadel.model.CardFlag;
-import com.tvz.avuckovic.the7thcitadel.model.CardType;
+import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
+import com.tvz.avuckovic.the7thcitadel.model.*;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CardUtils {
-    private static final int NUMBER_OF_CARDS = 5;
-
-    public static List<Card> drawShuffledCards(List<Card> deck) {
+    public static List<Card> drawShuffledActionCards(List<Card> deck) {
         if (deck == null || deck.isEmpty()) {
             throw new IllegalArgumentException("Deck cannot be null or empty.");
         }
 
-        List<Card> shuffledDeck = new ArrayList<>(deck);
-        Collections.shuffle(shuffledDeck);
-        return shuffledDeck.subList(0, Math.min(NUMBER_OF_CARDS, shuffledDeck.size()));
+        List<Card> shuffledActionDeck = deck.stream()
+                .filter(card -> card.getType().equals(CardType.ACTION))
+                .collect(Collectors.toList());
+        Collections.shuffle(shuffledActionDeck);
+        return shuffledActionDeck.subList(0, Math.min(GameConstants.Player.CARDS_IN_HAND, shuffledActionDeck.size()));
+    }
+
+    public static List<Card> loadCardsByType(CardType cardType) {
+        return loadCards().stream()
+                .filter(card -> card.getType().equals(cardType))
+                .collect(Collectors.toList());
     }
 
     public static List<Card> loadCards() {
@@ -62,14 +68,33 @@ public class CardUtils {
 
     private static Card buildCardFromAttributes(String[] cardAttributes) {
         if(cardAttributes.length != 5) {
-            throw new RuntimeException("card data not split correctly");
+            throw new IllegalStateException("card data not split correctly");
         }
+        String description = cardAttributes[2];
         return Card.builder()
                 .id(cardAttributes[0])
                 .type(CardType.valueOf(cardAttributes[1]))
-                .description(cardAttributes[2])
+                .description(description)
+                .skillType(evaluateSkillType(description))
+                .explorationArea(evaluateExplorationArea(description))
                 .backColor(CardBackColor.valueOf(cardAttributes[3]))
                 .flag(CardFlag.valueOf(cardAttributes[4]))
                 .build();
+    }
+
+    private static SkillType evaluateSkillType(String description) {
+        String[] words = description.split(" ");
+        String firstWord = words[0];
+        return Arrays.stream(SkillType.values())
+                .filter(skillType -> skillType.name().equals(firstWord.toUpperCase()))
+                .findFirst()
+                .orElse(SkillType.NONE);
+    }
+
+    private static ExplorationArea evaluateExplorationArea(String description) {
+        return Arrays.stream(ExplorationArea.values())
+                .filter(explorationArea -> explorationArea.getFullDescription().equals(description))
+                .findFirst()
+                .orElse(ExplorationArea.NONE);
     }
 }

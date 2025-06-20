@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.tvz.avuckovic.the7thcitadel.component.GameMap?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Pane?>
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.tvz.avuckovic.the7thcitadel.controller.MainController">
     <!-- Player Info -->
     <left>
@@ -16,17 +18,22 @@
             <Label text="Health: 10/10"/>
             <Label text="Energy: 5"/>
             <Label text="Inventory:"/>
-            <ListView fx:id="inventoryList"/>
+            <ListView fx:id="inventoryList" prefHeight="600" />
         </VBox>
     </left>
 
     <!-- Game Board -->
     <center>
-        <StackPane fx:id="gameBoard" styleClass="game-board">
+        <StackPane fx:id="gameBoard" styleClass="stretched-background">
             <padding>
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
-            <Label text="Game Board Area" textFill="white"/>
+            <GameMap fx:id="gameMap">
+
+            </GameMap>
+            <Pane fx:id="progressDraw">
+
+            </Pane>
         </StackPane>
     </center>
 
@@ -40,7 +47,7 @@
             <Button text="Explore"/>
             <Button text="Rest"/>
             <Button text="Use Item" onAction="#useItem"/>
-            <Label text="Card Hand:"/>
+            <Label text="Action deck:"/>
             <ListView fx:id="cardsListView" prefHeight="600" />
         </VBox>
     </right>

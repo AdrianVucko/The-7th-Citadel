@@ -1,17 +1,17 @@
 package com.tvz.avuckovic.the7thcitadel.model;
 
+import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
 import lombok.Getter;
 
 @Getter
 public enum ActiveScene {
-    MAIN("main-view.fxml"),
-    RULES("rules-view.fxml"),
-    ABOUT("about-view.fxml");
+    MAIN(GameConstants.Page.MAIN),
+    RULES(GameConstants.Page.RULES),
+    ABOUT(GameConstants.Page.ABOUT);
 
-    private static final String ROOT_FOLDER = "fxml/";
     private final String filePath;
 
     ActiveScene(String fileName) {
-        this.filePath = ROOT_FOLDER + fileName;
+        this.filePath = GameConstants.Page.ROOT_FOLDER + fileName;
     }
 }
