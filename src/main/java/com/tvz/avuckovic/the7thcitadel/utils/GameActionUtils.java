@@ -1,20 +1,57 @@
 package com.tvz.avuckovic.the7thcitadel.utils;
 
+import com.tvz.avuckovic.the7thcitadel.RootController;
+import com.tvz.avuckovic.the7thcitadel.controller.ActionDisplayController;
+import com.tvz.avuckovic.the7thcitadel.model.ExplorationArea;
 import com.tvz.avuckovic.the7thcitadel.model.GameAction;
 import com.tvz.avuckovic.the7thcitadel.model.SkillType;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.layout.AnchorPane;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class GameActionUtils {
+    public static AnchorPane createDisplay(GameAction action) {
+        try {
+            FXMLLoader loader = new FXMLLoader(RootController.class.getResource("fxml/action-display.fxml"));
+            AnchorPane pane = loader.load();
+            ActionDisplayController controller = loader.getController();
+            controller.setAction(action);
+            return pane;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public static List<GameAction> loadGameActions() {
         if(!FileUtils.fileExists("dat/game_actions.ser")) {
             return saveGameActions();
         }
         return FileUtils.loadObjectsFromFile("dat/game_actions.ser");
+    }
+
+    public static Map<ExplorationArea, List<GameAction>> distributeActions(List<GameAction> actions) {
+        List<GameAction> shuffled = new ArrayList<>(actions);
+        Collections.shuffle(shuffled);
+
+        ExplorationArea[] areas = ExplorationArea.values();
+        Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea = new EnumMap<>(ExplorationArea.class);
+
+        for (ExplorationArea area : areas) {
+            actionsPerExplorationArea.put(area, new ArrayList<>());
+        }
+
+        for (int i = 0; i < shuffled.size(); i++) {
+            ExplorationArea area = areas[i % areas.length];
+            actionsPerExplorationArea.get(area).add(shuffled.get(i));
+        }
+
+        return actionsPerExplorationArea;
     }
 
     private static List<GameAction> saveGameActions() {

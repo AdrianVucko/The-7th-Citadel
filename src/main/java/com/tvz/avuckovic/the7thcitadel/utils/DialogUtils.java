@@ -1,9 +1,14 @@
 package com.tvz.avuckovic.the7thcitadel.utils;
 
+import com.tvz.avuckovic.the7thcitadel.component.GameActionDialog;
+import com.tvz.avuckovic.the7thcitadel.model.GameAction;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
+import javafx.scene.layout.AnchorPane;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+
+import java.util.Optional;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DialogUtils {
@@ -19,6 +24,14 @@ public class DialogUtils {
             alert.setHeaderText(headerText);
             alert.setContentText(contentText);
             alert.showAndWait();
+        });
+    }
+
+    public static void showActionDialog(GameAction action)
+    {
+        Platform.runLater( () -> {
+            GameActionDialog gameActionDialog = new GameActionDialog(action);
+            Optional<Void> result = gameActionDialog.showAndWait();
         });
     }
 }

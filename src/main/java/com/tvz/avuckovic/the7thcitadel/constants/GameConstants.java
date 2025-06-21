@@ -17,7 +17,7 @@ public final class GameConstants {
     }
 
     public static final class Player {
-        public static final int CARDS_IN_HAND = 35;
+        public static final int CARDS_IN_HAND = 20;
     }
 
     public static final class UI {

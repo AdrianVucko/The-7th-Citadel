@@ -1,6 +1,8 @@
 package com.tvz.avuckovic.the7thcitadel.component;
 
 import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
+import com.tvz.avuckovic.the7thcitadel.model.ExplorationArea;
+import com.tvz.avuckovic.the7thcitadel.model.GameAction;
 import com.tvz.avuckovic.the7thcitadel.model.Message;
 import com.tvz.avuckovic.the7thcitadel.utils.DialogUtils;
 import javafx.geometry.Bounds;
@@ -18,6 +20,8 @@ import javafx.scene.shape.Line;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
+import java.util.Map;
 
 public class GameMap extends GridPane {
     private static final int rows = GameConstants.Board.ROWS;
@@ -26,7 +30,6 @@ public class GameMap extends GridPane {
     private boolean isWaterWarningTriggered = false;
     private Field startField = null;
     private Pane progressDraw = null;
-    private TextArea gameLog = null;
 
     public GameMap() {
         setHgap(0);
@@ -54,14 +57,23 @@ public class GameMap extends GridPane {
         }
     }
 
-    public void connectComponents(Pane progressDraw, TextArea gameLog) {
+    public void connectComponents(Pane progressDraw) {
         this.progressDraw = progressDraw;
-        this.gameLog = gameLog;
 
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 Field field = cells[row][col];
                 field.setOnMouseClicked(e -> onMapFieldClick(field));
+            }
+        }
+    }
+
+    public void distributeActions(Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea) {
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                Field field = cells[row][col];
+                List<GameAction> actions = actionsPerExplorationArea.get(field.getExplorationArea());
+                field.assignAction(actions.get(field.getCellNumber() % actions.size()));
             }
         }
     }
@@ -74,8 +86,10 @@ public class GameMap extends GridPane {
             } else {
                 drawPoint(field);
             }
-            field.markAsRevealed();
             startField = field;
+
+            field.markAsRevealed();
+            field.triggerAction();
         }
     }
 
@@ -118,7 +132,7 @@ public class GameMap extends GridPane {
         }
 
         if(field.isRevealed()) {
-            gameLog.appendText("This place is already discovered!\n");
+            GameLogger.info("This place is already discovered!");
             return false;
         }
         return true;

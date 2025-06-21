@@ -1,8 +1,10 @@
 package com.tvz.avuckovic.the7thcitadel.controller;
 
 import com.tvz.avuckovic.the7thcitadel.component.CardCell;
+import com.tvz.avuckovic.the7thcitadel.component.GameLogger;
 import com.tvz.avuckovic.the7thcitadel.component.GameMap;
 import com.tvz.avuckovic.the7thcitadel.model.Card;
+import com.tvz.avuckovic.the7thcitadel.model.ExplorationArea;
 import com.tvz.avuckovic.the7thcitadel.model.GameAction;
 import com.tvz.avuckovic.the7thcitadel.utils.GameActionUtils;
 import com.tvz.avuckovic.the7thcitadel.utils.CardUtils;
@@ -15,12 +17,13 @@ import javafx.scene.layout.StackPane;
 
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
     private List<Card> playerCards;
-    private List<GameAction> gameActions;
+    private Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea;
     @FXML public StackPane gameBoard;
     @FXML public TextArea gameLog;
     @FXML public ListView<Card> cardsListView;
@@ -30,20 +33,23 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        GameLogger.attach(gameLog);
         List<Card> allCards = CardUtils.loadCards();
+        List<GameAction> gameActions = GameActionUtils.loadGameActions();
         playerCards = CardUtils.drawShuffledActionCards(allCards);
-        gameActions = GameActionUtils.loadGameActions();
+        actionsPerExplorationArea = GameActionUtils.distributeActions(gameActions);
         cardsListView.setCellFactory(list -> new CardCell());
         cardsListView.getItems().setAll(playerCards);
         progressDraw.setPickOnBounds(false);
-        gameMap.connectComponents(progressDraw, gameLog);
+        gameMap.connectComponents(progressDraw);
+        gameMap.distributeActions(actionsPerExplorationArea);
     }
 
     public void useItem() {
         getSelectedCard().ifPresentOrElse(card -> {
             String logEntry = String.format("🃏 Card Used — [ID: %s] \"%s\"", card.getId(), card.getDescription());
-            gameLog.appendText(logEntry + "\n");
-        }, () -> gameLog.appendText("⚠️No card selected. Please choose a card first.\n"));
+            GameLogger.info(logEntry);
+        }, () -> GameLogger.warn("No card selected. Please choose a card first."));
     }
 
     private Optional<Card> getSelectedCard() {
