@@ -1,6 +1,7 @@
 package com.tvz.avuckovic.the7thcitadel;
 
 import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
+import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
 import com.tvz.avuckovic.the7thcitadel.model.ApplicationConfiguration;
 import com.tvz.avuckovic.the7thcitadel.model.Message;
 import com.tvz.avuckovic.the7thcitadel.model.PlayerType;
@@ -41,6 +42,7 @@ public class TheSeventhCitadelApplication extends Application {
     }
 
     public static void main(String[] args) {
+        configureApplicationExceptionHandler();
         if(args.length > 0) {
             applicationConfiguration.setPlayerType(PlayerType.valueOf(args[0]));
             launch();
@@ -50,5 +52,30 @@ public class TheSeventhCitadelApplication extends Application {
                     Alert.AlertType.ERROR, Message.START_APPLICATION_ERROR_MESSAGE.getText(),
                     Message.START_APPLICATION_ERROR_MESSAGE.getText(), ""));
         }
+    }
+
+    private static void configureApplicationExceptionHandler() {
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            Throwable cause = unwrapCause(throwable);
+            if (cause instanceof ApplicationException) {
+                String message = cause.getMessage() != null ? cause.getMessage() : "An unknown error occurred.";
+                DialogUtils.showDialog(
+                        Alert.AlertType.ERROR,
+                        "Something happened",
+                        message,
+                        ""
+                );
+            } else {
+                throwable.printStackTrace();
+            }
+        });
+    }
+
+    private static Throwable unwrapCause(Throwable throwable) {
+        Throwable result = throwable;
+        while (result.getCause() != null && result != result.getCause()) {
+            result = result.getCause();
+        }
+        return result;
     }
 }

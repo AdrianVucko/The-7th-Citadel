@@ -15,8 +15,6 @@
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
             <Label text="Player Info" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-            <Label text="Health: 10/10"/>
-            <Label text="Energy: 5"/>
             <Label text="Inventory:"/>
             <ListView fx:id="inventoryList" prefHeight="600" />
         </VBox>
@@ -43,10 +41,12 @@
             <padding>
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
+            <Label text="Player Info" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+            <Label fx:id="playerName"/>
+            <Label fx:id="playerHealth"/>
             <Label text="Actions" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-            <Button text="Explore"/>
-            <Button text="Rest"/>
-            <Button text="Use Item" onAction="#useItem"/>
+            <Button text="Get skill (-1 HP)" onAction="#acquireSkill"/>
+            <Button text="Use skill (+1 HP)" onAction="#useSkill"/>
             <Label text="Action deck:"/>
             <ListView fx:id="cardsListView" prefHeight="600" />
         </VBox>

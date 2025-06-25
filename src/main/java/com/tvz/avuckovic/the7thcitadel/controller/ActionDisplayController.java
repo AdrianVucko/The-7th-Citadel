@@ -6,6 +6,7 @@ import javafx.scene.control.Label;
 
 public class ActionDisplayController {
 
+    @FXML public Label requiredPointsLabel;
     @FXML private Label descriptionLabel;
     @FXML private Label skillLabel;
     @FXML private Label pointsLabel;
@@ -14,6 +15,7 @@ public class ActionDisplayController {
 
     public void setAction(GameAction action) {
         descriptionLabel.setText("Action: " + action.description());
+        requiredPointsLabel.setText("Minimum required: " + action.pointsNeeded() + "⭐");
         skillLabel.setText("Skill: " + action.requiredSkill());
         pointsLabel.setText("Skill Cards Needed: " + action.pointsNeeded());
         gainLabel.setText("Gain on Success: +" + action.healthGain() + " HP");

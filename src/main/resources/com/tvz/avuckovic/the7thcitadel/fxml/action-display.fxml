@@ -10,6 +10,7 @@
             <Insets top="10" right="10" bottom="10" left="10"/>
         </padding>
         <Label fx:id="descriptionLabel" wrapText="true" style="-fx-font-weight: bold;"/>
+        <Label fx:id="requiredPointsLabel" style="-fx-font-style: italic;"/>
         <Label fx:id="skillLabel"/>
         <Label fx:id="pointsLabel"/>
         <Label fx:id="gainLabel"/>

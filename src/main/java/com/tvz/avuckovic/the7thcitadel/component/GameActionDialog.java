@@ -7,11 +7,13 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 
 public class GameActionDialog extends Dialog<Void> {
 
     private boolean diceRolled = false;
     private boolean cardsSubmitted = false;
+    private final Label diceResultLabel = new Label();
     private final Button finishButton;
 
     public GameActionDialog(GameAction action) {
@@ -29,6 +31,10 @@ public class GameActionDialog extends Dialog<Void> {
             getDialogPane().setContent(new Label("Failed to load action display."));
         }
 
+        VBox wrapper = new VBox(10);
+        wrapper.getChildren().addAll(getDialogPane().getContent(), diceResultLabel);
+        getDialogPane().setContent(wrapper);
+
         ButtonType giveUpType = new ButtonType("Give Up", ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType throwDiceType = new ButtonType("Throw Dice", ButtonBar.ButtonData.OTHER);
         ButtonType submitCardsType = new ButtonType("Submit Cards", ButtonBar.ButtonData.OTHER);
@@ -42,7 +48,21 @@ public class GameActionDialog extends Dialog<Void> {
 
         throwDiceButton.addEventFilter(ActionEvent.ACTION, event -> {
             diceRolled = true;
-            GameLogger.info("🎲 Dice rolled!");
+            int diceCount = 3;
+            int totalStars = 0;
+            StringBuilder resultDisplay = new StringBuilder("🎲 Dice roll: ");
+
+            for (int i = 0; i < diceCount; i++) {
+                int roll = new java.util.Random().nextInt(3); // 0–2 stars per die
+                totalStars += roll;
+                resultDisplay.append("[").append("⭐".repeat(roll)).append("] ");
+            }
+
+            resultDisplay.append("→ ").append(totalStars).append("⭐ total");
+            diceResultLabel.setText(resultDisplay.toString());
+
+            GameLogger.info(resultDisplay.toString());
+            throwDiceButton.setDisable(true);
             updateFinishButtonState();
             event.consume();
         });

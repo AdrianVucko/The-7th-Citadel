@@ -1,10 +1,12 @@
 package com.tvz.avuckovic.the7thcitadel.utils;
 
 import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
+import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
 import com.tvz.avuckovic.the7thcitadel.model.*;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -24,10 +26,18 @@ public class CardUtils {
         return shuffledActionDeck.subList(0, Math.min(GameConstants.Player.CARDS_IN_HAND, shuffledActionDeck.size()));
     }
 
-    public static List<Card> loadCardsByType(CardType cardType) {
-        return loadCards().stream()
-                .filter(card -> card.getType().equals(cardType))
+    public static Card selectUnusedRandomSkill(List<Card> allCards, List<Card> playerCards) {
+        List<Card> unused = new ArrayList<>(allCards).stream()
+                .filter(card -> card.getType().equals(CardType.ACTION))
                 .collect(Collectors.toList());
+        unused.removeAll(playerCards);
+
+        if (unused.isEmpty()) {
+            throw new ApplicationException(Message.NO_UNUSED_CARDS.getText());
+        }
+
+        Collections.shuffle(unused);
+        return unused.get(0);
     }
 
     public static List<Card> loadCards() {
