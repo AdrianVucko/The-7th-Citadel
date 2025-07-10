@@ -1,5 +1,6 @@
 package com.tvz.avuckovic.the7thcitadel.utils;
 
+import com.tvz.avuckovic.the7thcitadel.TheSeventhCitadelApplication;
 import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
 import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
 import com.tvz.avuckovic.the7thcitadel.model.*;
@@ -51,6 +52,15 @@ public class CardUtils {
             player.getDiscardPile().add(cardForDiscard);
         }
         return cardsForDiscard;
+    }
+
+    public static String assignPlayerName(List<Card> allCards) {
+        List<Card> characterCards = allCards.stream()
+                .filter(card -> card.getType().equals(CardType.CHARACTER))
+                .collect(Collectors.toList());
+        Collections.shuffle(characterCards);
+        return characterCards.isEmpty() ? TheSeventhCitadelApplication.applicationConfiguration.getPlayerType().name() :
+                characterCards.get(0).getDescription();
     }
 
     public static List<Card> loadCards() {

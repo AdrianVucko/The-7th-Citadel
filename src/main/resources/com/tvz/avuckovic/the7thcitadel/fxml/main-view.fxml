@@ -7,16 +7,23 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.HBox?>
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.tvz.avuckovic.the7thcitadel.controller.MainController">
-    <!-- Player Info -->
+    <!-- Chat -->
     <left>
-        <VBox spacing="10">
+        <VBox spacing="10" prefWidth="300">
             <padding>
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
-            <Label text="Player Info" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-            <Label text="Inventory:"/>
-            <ListView fx:id="inventoryList" prefHeight="600" />
+
+            <Label text="Chat" style="-fx-font-weight: bold; -fx-font-size: 14;" />
+
+            <TextArea fx:id="chatArea" editable="false" wrapText="true" prefHeight="600"/>
+
+            <HBox spacing="5">
+                <TextField fx:id="messageInput" HBox.hgrow="ALWAYS" promptText="Type your message..." />
+                <Button text="Send" onAction="#handleSendMessage"/>
+            </HBox>
         </VBox>
     </left>
 
@@ -35,7 +42,7 @@
         </StackPane>
     </center>
 
-    <!-- Action Buttons / Card Hand -->
+    <!-- Player info / skills -->
     <right>
         <VBox spacing="10">
             <padding>
