@@ -40,6 +40,19 @@ public class CardUtils {
         return unused.get(0);
     }
 
+    public static List<Card> removeSkillCardsFromPlayer(SkillType skillType, int numberOfCards) {
+        Player player = Player.getInstance();
+        List<Card> cardsForDiscard = player.getActionDeck().stream()
+                .filter(card -> card.getSkillType().equals(skillType))
+                .limit(numberOfCards)
+                .collect(Collectors.toList());
+        for (Card cardForDiscard : cardsForDiscard) {
+            player.getActionDeck().remove(cardForDiscard);
+            player.getDiscardPile().add(cardForDiscard);
+        }
+        return cardsForDiscard;
+    }
+
     public static List<Card> loadCards() {
         if(!FileUtils.fileExists("dat/cards.ser")) {
             return saveCards();

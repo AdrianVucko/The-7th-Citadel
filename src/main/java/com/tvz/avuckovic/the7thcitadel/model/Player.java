@@ -32,6 +32,6 @@ public class Player {
         } else if (this.health > this.maxHealth) {
             this.health = maxHealth;
         }
-        GameLogger.info("Player " + this.name + " health changed to " + this.health);
+        GameLogger.info("Health changed to " + this.health);
     }
 }

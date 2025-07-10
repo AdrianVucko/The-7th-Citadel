@@ -4,7 +4,6 @@ import com.tvz.avuckovic.the7thcitadel.component.GameActionDialog;
 import com.tvz.avuckovic.the7thcitadel.model.GameAction;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
-import javafx.scene.layout.AnchorPane;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -31,7 +30,7 @@ public class DialogUtils {
     {
         Platform.runLater( () -> {
             GameActionDialog gameActionDialog = new GameActionDialog(action);
-            Optional<Void> result = gameActionDialog.showAndWait();
+            gameActionDialog.showAndWait();
         });
     }
 }

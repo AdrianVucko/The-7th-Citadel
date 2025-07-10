@@ -1,5 +1,6 @@
 package com.tvz.avuckovic.the7thcitadel;
 
+import com.tvz.avuckovic.the7thcitadel.component.GameLogger;
 import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
 import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
 import com.tvz.avuckovic.the7thcitadel.model.ApplicationConfiguration;
@@ -58,10 +59,11 @@ public class TheSeventhCitadelApplication extends Application {
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             Throwable cause = unwrapCause(throwable);
             if (cause instanceof ApplicationException) {
-                String message = cause.getMessage() != null ? cause.getMessage() : "An unknown error occurred.";
+                String message = cause.getMessage() != null ? cause.getMessage() : Message.UNKNOWN_ERROR.getText();
+                GameLogger.error(message);
                 DialogUtils.showDialog(
                         Alert.AlertType.ERROR,
-                        "Something happened",
+                        Message.SOMETHING_HAPPENED.getText(),
                         message,
                         ""
                 );

@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.io.*;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,5 +50,27 @@ public class FileUtils {
     public static boolean fileExists(String pathName) {
         File file = new File(pathName);
         return file.exists();
+    }
+
+    public static String getDiskRoot() {
+        String resourcesAbsolutePath = getResourcesAbsolutePath();
+        if(resourcesAbsolutePath.isBlank()) {
+            return "";
+        }
+        return resourcesAbsolutePath.substring(0, 3);
+    }
+
+    public static String getAbsolutePathFromDiskToApplicationProperties() {
+        String resourcesAbsolutePath = getResourcesAbsolutePath();
+        if(resourcesAbsolutePath.isBlank()) {
+            return "";
+        }
+        return resourcesAbsolutePath.substring(3);
+    }
+
+    private static String getResourcesAbsolutePath() {
+        String projectRoot = Paths.get("").toAbsolutePath().toString();
+        return Paths.get(projectRoot, "src", "main", "resources", "com", "tvz", "avuckovic", "the7thcitadel")
+                .toAbsolutePath().toString().replace("\\", "/");
     }
 }

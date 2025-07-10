@@ -19,3 +19,33 @@ Escape the collapsing tunnel;REFLEX;2;4;3;2
 Hide from patrolling sentinels;REFLEX;1;3;2;1
 Match the statue’s pose to open the door;ADVANCED;1;3;2;1
 Improvise a distraction in the marketplace;CHARACTER;1;3;2;2
+Navigate the misty ruins;REFLEX;1;3;2;1
+Persuade the hermit to share knowledge;CHARACTER;2;4;1;2
+Lift the rusted grate;ADVANCED;1;2;2;1
+Comfort a crying child in the ruins;CHARACTER;1;3;2;1
+Leap over a crumbled walkway;REFLEX;2;4;3;2
+Decipher a crumbling scroll;ADVANCED;1;5;2;2
+Force open the temple gate;ADVANCED;2;4;2;2
+Evade the shadow beast;REFLEX;1;3;1;1
+Pickpocket an overconfident traveler;CHARACTER;1;4;2;2
+Run across a collapsing bridge;REFLEX;2;5;3;3
+Seal a leaking alchemical pipe;ADVANCED;1;2;2;1
+Hunt for edible roots;CHARACTER;1;3;2;2
+Ignite a fire in heavy rain;ADVANCED;1;3;1;1
+Charm a defensive local;CHARACTER;1;5;2;1
+Move a fallen tree blocking the path;ADVANCED;2;3;3;2
+Reconstruct a torn map;ADVANCED;1;5;2;2
+Escape from an enchanted trap;REFLEX;2;4;3;2
+Sneak through enemy patrol lines;REFLEX;1;3;2;1
+Align ancient symbols to open a portal;ADVANCED;1;4;2;1
+Perform a street distraction;CHARACTER;1;4;2;2
+Sneak past a group of cultists;REFLEX;1;3;2;1
+Heal a wounded ally with herbs;CHARACTER;1;4;2;1
+Reinforce a crumbling ledge;ADVANCED;1;2;2;1
+Find a hidden compartment in the wall;ADVANCED;1;3;1;1
+Interrupt a magical ritual;REFLEX;2;5;3;3
+Blend into a suspicious crowd;CHARACTER;1;3;2;2
+Disable a simple mechanical trap;ADVANCED;1;2;2;1
+Climb a jagged cliffside at night;REFLEX;2;4;3;2
+Comfort a terrified survivor;CHARACTER;1;3;2;1
+Sift through debris for supplies;ADVANCED;1;3;2;1

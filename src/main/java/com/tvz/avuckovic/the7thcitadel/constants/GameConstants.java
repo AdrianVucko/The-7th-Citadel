@@ -18,6 +18,8 @@ public final class GameConstants {
 
     public static final class Player {
         public static final int CARDS_IN_HAND = 20;
+        public static final int START_HEALTH = 8;
+        public static final int MAX_HEALTH = 10;
     }
 
     public static final class UI {

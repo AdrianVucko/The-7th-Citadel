@@ -5,6 +5,7 @@ import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
 import com.tvz.avuckovic.the7thcitadel.model.ExplorationArea;
 import com.tvz.avuckovic.the7thcitadel.model.GameAction;
 import com.tvz.avuckovic.the7thcitadel.model.Message;
+import com.tvz.avuckovic.the7thcitadel.model.Player;
 import com.tvz.avuckovic.the7thcitadel.utils.DialogUtils;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -118,6 +119,10 @@ public class GameMap extends GridPane {
     }
 
     private boolean isClickPossible(Field field) {
+        if(Player.getInstance().getHealth() == 0) {
+            throw new ApplicationException(Message.ALREADY_DEAD.getText());
+        }
+
         boolean fieldInWater = field.isFieldInWater();
         if(fieldInWater && isWaterWarningTriggered) {
             throw new ApplicationException(Message.PLAYER_DROWNED.getText());
@@ -125,6 +130,7 @@ public class GameMap extends GridPane {
         if(fieldInWater) {
             DialogUtils.showDialog(Alert.AlertType.WARNING, Message.PLAYER_WILL_DROWN_WARNING.getText(),
                     Message.PLAYER_WILL_DROWN_WARNING.getText(),"");
+            GameLogger.warn(Message.PLAYER_WILL_DROWN_WARNING.getText());
             isWaterWarningTriggered = true;
             return false;
         }

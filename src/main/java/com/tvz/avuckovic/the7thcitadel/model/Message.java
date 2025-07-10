@@ -8,8 +8,17 @@ public enum Message {
     PLAYER_WILL_DROWN_WARNING("You are going to drown if you go to water again!"),
     PLAYER_DROWNED("You drowned in water!"),
     NO_UNUSED_CARDS("No unused cards available!"),
+    NO_SKILL_SELECTED("No skill selected!"),
     SKILL_WASTED("Your skill is wasted because health is already at max!"),
-    END("You died!");
+    LOG_INITIALIZED("📝 Game log initialized."),
+    PLAYER_DISPLAY_CONNECTED("✍ Player data display connected."),
+    CARDS_SUBMITTED("📦 %d of %d %s cards submitted!"),
+    ACTION_FINISHED("✅ Action completed successfully!"),
+    FAILED_ACTION("\uD83D\uDEAA Failed action and lost %d health points!"),
+    END("You died!"),
+    ALREADY_DEAD("You can't make moves because you are dead!"),
+    SOMETHING_HAPPENED("Something happened"),
+    UNKNOWN_ERROR("An unknown error occurred.");
 
     private final String text;
 

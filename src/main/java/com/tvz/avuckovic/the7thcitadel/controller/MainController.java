@@ -3,10 +3,12 @@ package com.tvz.avuckovic.the7thcitadel.controller;
 import com.tvz.avuckovic.the7thcitadel.component.CardCell;
 import com.tvz.avuckovic.the7thcitadel.component.GameLogger;
 import com.tvz.avuckovic.the7thcitadel.component.GameMap;
+import com.tvz.avuckovic.the7thcitadel.component.PlayerDisplay;
+import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
 import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
 import com.tvz.avuckovic.the7thcitadel.model.*;
-import com.tvz.avuckovic.the7thcitadel.utils.GameActionUtils;
 import com.tvz.avuckovic.the7thcitadel.utils.CardUtils;
+import com.tvz.avuckovic.the7thcitadel.utils.GameActionUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
@@ -36,13 +38,14 @@ public class MainController implements Initializable {
         allCards = CardUtils.loadCards();
         List<GameAction> gameActions = GameActionUtils.loadGameActions();
         List<Card> playerCards = CardUtils.drawShuffledActionCards(allCards);
-        initializePlayer(playerCards);
         actionsPerExplorationArea = GameActionUtils.distributeActions(gameActions);
         cardsListView.setCellFactory(list -> new CardCell());
         cardsListView.getItems().setAll(playerCards);
         progressDraw.setPickOnBounds(false);
         gameMap.connectComponents(progressDraw);
         gameMap.distributeActions(actionsPerExplorationArea);
+        PlayerDisplay.attach(playerName, playerHealth, cardsListView);
+        initializePlayer(playerCards);
     }
 
     public void acquireSkill() {
@@ -54,7 +57,7 @@ public class MainController implements Initializable {
         player.getActionDeck().add(unusedCard);
         cardsListView.getItems().add(unusedCard);
         decrementPlayerHealth();
-        fillPlayerLabels();
+        PlayerDisplay.fillPlayerLabels();
     }
 
     public void useSkill() {
@@ -65,12 +68,13 @@ public class MainController implements Initializable {
             Player player = Player.getInstance();
             player.getActionDeck().remove(card);
             player.getDiscardPile().add(card);
-            incrementPlayerHealth();
 
             cardsListView.getItems().remove(card);
             cardsListView.getSelectionModel().clearSelection();
-            fillPlayerLabels();
-        }, () -> GameLogger.warn("No skill selected. Please choose one first."));
+
+            incrementPlayerHealth();
+            PlayerDisplay.fillPlayerLabels();
+        }, () -> GameLogger.warn(Message.NO_SKILL_SELECTED.getText()));
     }
 
     private Optional<Card> getSelectedCard() {
@@ -81,16 +85,10 @@ public class MainController implements Initializable {
     private void initializePlayer(List<Card> playerCards) {
         Player player = Player.getInstance();
         player.setName("Arthen");
-        player.setHealth(8);
-        player.setMaxHealth(10);
+        player.setHealth(GameConstants.Player.START_HEALTH);
+        player.setMaxHealth(GameConstants.Player.MAX_HEALTH);
         player.getActionDeck().addAll(playerCards);
-        fillPlayerLabels();
-    }
-
-    private void fillPlayerLabels() {
-        Player player = Player.getInstance();
-        playerName.setText("Name: " + player.getName());
-        playerHealth.setText("Health: " + player.getHealth() + "/" + player.getMaxHealth());
+        PlayerDisplay.fillPlayerLabels();
     }
 
     private void incrementPlayerHealth() {
@@ -105,6 +103,7 @@ public class MainController implements Initializable {
         Player player = Player.getInstance();
         player.modifyHealth(-1);
         if(player.getHealth() <= 0) {
+            PlayerDisplay.fillPlayerLabels();
             throw new ApplicationException(Message.END.getText());
         }
     }
