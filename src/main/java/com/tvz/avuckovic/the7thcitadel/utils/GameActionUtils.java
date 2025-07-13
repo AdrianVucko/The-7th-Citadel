@@ -2,6 +2,7 @@ package com.tvz.avuckovic.the7thcitadel.utils;
 
 import com.tvz.avuckovic.the7thcitadel.RootController;
 import com.tvz.avuckovic.the7thcitadel.controller.ActionDisplayController;
+import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
 import com.tvz.avuckovic.the7thcitadel.model.ExplorationArea;
 import com.tvz.avuckovic.the7thcitadel.model.GameAction;
 import com.tvz.avuckovic.the7thcitadel.model.SkillType;
@@ -52,6 +53,17 @@ public class GameActionUtils {
         }
 
         return actionsPerExplorationArea;
+    }
+
+    public static GameAction selectRandomActionPerExplorationArea(
+            Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea) {
+        List<GameAction> actions = actionsPerExplorationArea.values().stream()
+                .flatMap(Collection::stream).collect(Collectors.toList());
+        Collections.shuffle(actions);
+        if(actions.isEmpty()) {
+            throw new ApplicationException("No game actions was chosen for winning!");
+        }
+        return actions.get(0);
     }
 
     private static List<GameAction> saveGameActions() {

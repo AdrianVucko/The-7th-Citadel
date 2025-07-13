@@ -23,11 +23,13 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 public class GameMap extends GridPane {
-    private static final int rows = GameConstants.Board.ROWS;
-    private static final int cols = GameConstants.Board.COLS;
-    private final Field[][] cells = new Field[rows][cols];
+    private static final int ROWS = GameConstants.Board.ROWS;
+    private static final int COLS = GameConstants.Board.COLS;
+    private final Field[][] cells = new Field[ROWS][COLS];
     private boolean isWaterWarningTriggered = false;
     private Field startField = null;
     private Pane progressDraw = null;
@@ -36,21 +38,21 @@ public class GameMap extends GridPane {
         setHgap(0);
         setVgap(0);
 
-        BigDecimal singleRowSpace = calculatePercentageSplit(rows);
-        BigDecimal singleColumnSpace = calculatePercentageSplit(cols);
-        for (int row = 0; row < rows; row++) {
+        BigDecimal singleRowSpace = calculatePercentageSplit(ROWS);
+        BigDecimal singleColumnSpace = calculatePercentageSplit(COLS);
+        for (int row = 0; row < ROWS; row++) {
             RowConstraints rowConstraint = new RowConstraints();
             rowConstraint.setPercentHeight(singleRowSpace.doubleValue());
             getRowConstraints().add(rowConstraint);
         }
-        for (int col = 0; col < cols; col++) {
+        for (int col = 0; col < COLS; col++) {
             ColumnConstraints colConstraint = new ColumnConstraints();
             colConstraint.setPercentWidth(singleColumnSpace.doubleValue());
             getColumnConstraints().add(colConstraint);
         }
 
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
                 Field cell = new Field(row, col);
                 add(cell, col, row);
                 cells[row][col] = cell;
@@ -60,37 +62,52 @@ public class GameMap extends GridPane {
 
     public void connectComponents(Pane progressDraw) {
         this.progressDraw = progressDraw;
-
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
-                Field field = cells[row][col];
-                field.setOnMouseClicked(e -> onMapFieldClick(field));
-            }
-        }
+        executeForEachField(field -> field.setOnMouseClicked(e -> onMapFieldClick(field)));
     }
 
-    public void distributeActions(Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea) {
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
-                Field field = cells[row][col];
-                List<GameAction> actions = actionsPerExplorationArea.get(field.getExplorationArea());
-                field.assignAction(actions.get(field.getCellNumber() % actions.size()));
+    public boolean distributeActions(Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea, GameAction winningAction) {
+        AtomicBoolean actionsDistributed = new AtomicBoolean(true);
+        executeForEachField(field -> {
+            List<GameAction> actions = actionsPerExplorationArea.get(field.getExplorationArea());
+            GameAction gameAction = actions.get(field.getCellNumber() % actions.size());
+            if(gameAction.equals(winningAction) && field.isFieldInWater()) {
+                actionsDistributed.set(false);
+            } else if (gameAction.equals(winningAction)) {
+                field.markAsWinning();
+                assignWinningExplorationAreaToFields(field.getExplorationArea());
             }
-        }
+            field.assignAction(gameAction);
+        });
+        return actionsDistributed.get();
+    }
+
+    private void assignWinningExplorationAreaToFields(ExplorationArea winningExplorationArea) {
+        executeForEachField(field -> field.setWinningExplorationArea(winningExplorationArea));
     }
 
     private void onMapFieldClick(Field field) {
         if (isClickPossible(field)) {
-            if(startField != null) {
-                drawPoint(startField);
-                drawLine(startField, field);
+            boolean actionCompleted = field.triggerAction();
+            if(field.isWinning() && !actionCompleted) {
+                GameLogger.warn("You have found the final task, but failed it! Try again");
+                field.highlight();
             } else {
-                drawPoint(field);
+                revealField(field, actionCompleted);
             }
-            startField = field;
+        }
+    }
 
-            field.markAsRevealed();
-            field.triggerAction();
+    private void revealField(Field field, boolean actionCompleted) {
+        if(startField != null) {
+            drawPoint(startField);
+            drawLine(startField, field);
+        } else {
+            drawPoint(field);
+        }
+        startField = field;
+        field.markAsRevealed();
+        if (field.isWinning() && actionCompleted) {
+            throw new ApplicationException(Message.GAME_WON.getText(), Alert.AlertType.INFORMATION);
         }
     }
 
@@ -119,6 +136,10 @@ public class GameMap extends GridPane {
     }
 
     private boolean isClickPossible(Field field) {
+        if(isGameWon()) {
+            throw new ApplicationException(Message.GAME_WON.getText(), Alert.AlertType.INFORMATION);
+        }
+
         if(Player.getInstance().getHealth() == 0) {
             throw new ApplicationException(Message.ALREADY_DEAD.getText());
         }
@@ -140,6 +161,24 @@ public class GameMap extends GridPane {
             return false;
         }
         return true;
+    }
+
+    private boolean isGameWon() {
+        AtomicBoolean gameWon = new AtomicBoolean(false);
+        executeForEachField(field -> {
+            if(field.isWinning() && field.isRevealed()) {
+                gameWon.set(true);
+            }
+        });
+        return gameWon.get();
+    }
+
+    public void executeForEachField(Consumer<Field> action) {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                action.accept(cells[row][col]);
+            }
+        }
     }
 
     private Point2D getCenterInScene(Node node) {

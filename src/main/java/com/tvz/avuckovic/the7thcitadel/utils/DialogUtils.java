@@ -1,6 +1,7 @@
 package com.tvz.avuckovic.the7thcitadel.utils;
 
 import com.tvz.avuckovic.the7thcitadel.component.GameActionDialog;
+import com.tvz.avuckovic.the7thcitadel.model.ExplorationArea;
 import com.tvz.avuckovic.the7thcitadel.model.GameAction;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -26,11 +27,10 @@ public class DialogUtils {
         });
     }
 
-    public static void showActionDialog(GameAction action)
+    public static boolean showActionDialog(ExplorationArea winningArea, ExplorationArea explorationArea, GameAction action)
     {
-        Platform.runLater( () -> {
-            GameActionDialog gameActionDialog = new GameActionDialog(action);
-            gameActionDialog.showAndWait();
-        });
+        GameActionDialog gameActionDialog = new GameActionDialog(winningArea, explorationArea, action);
+        Optional<Boolean> resultOfAction = gameActionDialog.showAndWait();
+        return resultOfAction.orElse(false);
     }
 }

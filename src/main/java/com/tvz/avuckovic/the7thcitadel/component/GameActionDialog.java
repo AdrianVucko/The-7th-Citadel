@@ -3,10 +3,7 @@ package com.tvz.avuckovic.the7thcitadel.component;
 import com.tvz.avuckovic.the7thcitadel.RootController;
 import com.tvz.avuckovic.the7thcitadel.controller.ActionDisplayController;
 import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
-import com.tvz.avuckovic.the7thcitadel.model.Card;
-import com.tvz.avuckovic.the7thcitadel.model.GameAction;
-import com.tvz.avuckovic.the7thcitadel.model.Message;
-import com.tvz.avuckovic.the7thcitadel.model.Player;
+import com.tvz.avuckovic.the7thcitadel.model.*;
 import com.tvz.avuckovic.the7thcitadel.utils.CardUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -16,11 +13,13 @@ import javafx.scene.layout.VBox;
 
 import java.util.List;
 
-public class GameActionDialog extends Dialog<Void> {
+public class GameActionDialog extends Dialog<Boolean> {
     private boolean diceRolled = false;
     private boolean cardsSubmitted = false;
     private boolean taskFailed = false;
     private boolean finishedProperly = false;
+    private final ExplorationArea winningArea;
+    private final ExplorationArea actionArea;
     private final GameAction action;
     private final Label diceResultLabel = new Label();
     private final Label skillResultLabel = new Label();
@@ -28,8 +27,11 @@ public class GameActionDialog extends Dialog<Void> {
     private final Button submitCardsButton;
     private final Button finishButton;
 
-    public GameActionDialog(GameAction action) {
+    public GameActionDialog(ExplorationArea winningArea, ExplorationArea actionArea, GameAction action) {
+        this.winningArea = winningArea;
+        this.actionArea = actionArea;
         this.action = action;
+
         setTitle("Resolve Action");
         setHeaderText("Choose how to proceed");
 
@@ -64,6 +66,7 @@ public class GameActionDialog extends Dialog<Void> {
         finishButton.setDisable(true);
 
         setOnHidden(event -> giveUp());
+        setResultConverter((buttonType) -> getActionCompleted());
     }
 
     private void giveUp() {
@@ -86,13 +89,19 @@ public class GameActionDialog extends Dialog<Void> {
     }
 
     private void performFinishAction() {
-        if(taskFailed) {
-            return;
-        }
-
-        GameLogger.info(Message.ACTION_FINISHED.getText());
         Player player = Player.getInstance();
-        player.modifyHealth(this.action.healthGain());
+
+        if(taskFailed) {
+            player.modifyHealth(-this.action.healthLoss());
+            GameLogger.info(String.format(Message.FAILED_ACTION.getText(), this.action.healthLoss()));
+            if(player.getHealth() <= 0) {
+                throw new ApplicationException(Message.END.getText());
+            }
+        } else {
+            player.modifyHealth(this.action.healthGain());
+            GameLogger.info(String.format(Message.ACTION_FINISHED.getText(), this.actionArea.getFullDescription()));
+            logExplorationArea();
+        }
         PlayerDisplay.fillPlayerLabels();
         finishedProperly = true;
     }
@@ -141,7 +150,23 @@ public class GameActionDialog extends Dialog<Void> {
         event.consume();
     }
 
+    private void logExplorationArea() {
+        int winningAreaNumber = CardUtils.evaluateAreaNumberByExplorationArea(winningArea);
+        int actionAreaNumber = CardUtils.evaluateAreaNumberByExplorationArea(actionArea);
+        if(actionAreaNumber < winningAreaNumber) {
+            GameLogger.info("\uD83D\uDDFA Final task is in a bigger exploration area");
+        } else if (actionAreaNumber == winningAreaNumber) {
+            GameLogger.info("\uD83D\uDDFA Final task is located in this exploration area");
+        } else {
+            GameLogger.info("\uD83D\uDDFA Final task is in a smaller exploration area");
+        }
+    }
+
     private void updateFinishButtonState() {
         finishButton.setDisable(!(diceRolled && cardsSubmitted));
+    }
+
+    private Boolean getActionCompleted() {
+        return !taskFailed && finishedProperly;
     }
 }

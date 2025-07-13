@@ -2,6 +2,7 @@ package com.tvz.avuckovic.the7thcitadel.controller;
 
 import com.tvz.avuckovic.the7thcitadel.TheSeventhCitadelApplication;
 import com.tvz.avuckovic.the7thcitadel.chat.ChatRemoteService;
+import com.tvz.avuckovic.the7thcitadel.chat.SharedLogService;
 import com.tvz.avuckovic.the7thcitadel.component.CardCell;
 import com.tvz.avuckovic.the7thcitadel.component.GameLogger;
 import com.tvz.avuckovic.the7thcitadel.component.GameMap;
@@ -13,7 +14,7 @@ import com.tvz.avuckovic.the7thcitadel.jndi.ConfigurationKey;
 import com.tvz.avuckovic.the7thcitadel.jndi.ConfigurationReader;
 import com.tvz.avuckovic.the7thcitadel.model.*;
 import com.tvz.avuckovic.the7thcitadel.utils.CardUtils;
-import com.tvz.avuckovic.the7thcitadel.utils.ChatUtils;
+import com.tvz.avuckovic.the7thcitadel.utils.SharedUtils;
 import com.tvz.avuckovic.the7thcitadel.utils.GameActionUtils;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
@@ -45,22 +46,19 @@ public class MainController implements Initializable {
     private ChatRemoteService chatRemoteService;
     private List<Card> allCards;
     private Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea;
+    private GameAction winningAction;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        GameLogger.attach(gameLog);
         allCards = CardUtils.loadCards();
-        List<GameAction> gameActions = GameActionUtils.loadGameActions();
         List<Card> playerCards = CardUtils.drawShuffledActionCards(allCards);
-        actionsPerExplorationArea = GameActionUtils.distributeActions(gameActions);
         cardsListView.setCellFactory(list -> new CardCell());
         cardsListView.getItems().setAll(playerCards);
         progressDraw.setPickOnBounds(false);
         gameMap.connectComponents(progressDraw);
-        gameMap.distributeActions(actionsPerExplorationArea);
-        PlayerDisplay.attach(playerName, playerHealth, cardsListView);
         initializePlayer(playerCards);
-        initializeChat();
+        initializeChatAndLog();
+        initializeActionFields();
     }
 
     public void acquireSkill() {
@@ -92,12 +90,31 @@ public class MainController implements Initializable {
         }, () -> GameLogger.warn(Message.NO_SKILL_SELECTED.getText()));
     }
 
+    public void handleSendMessage() {
+        String message = messageInput.getText().trim();
+        if (isMultiplayer() && !message.isEmpty()) {
+            SharedUtils.sendChatMessage(message, chatRemoteService);
+        }
+        messageInput.clear();
+    }
+
+    private void initializeActionFields() {
+        boolean actionsDistributed;
+        do {
+            List<GameAction> gameActions = GameActionUtils.loadGameActions();
+            actionsPerExplorationArea = GameActionUtils.distributeActions(gameActions);
+            winningAction = GameActionUtils.selectRandomActionPerExplorationArea(actionsPerExplorationArea);
+            actionsDistributed = gameMap.distributeActions(actionsPerExplorationArea, winningAction);
+        } while (!actionsDistributed);
+    }
+
     private Optional<Card> getSelectedCard() {
         Card selectedItem = cardsListView.getSelectionModel().getSelectedItem();
         return Optional.ofNullable(selectedItem);
     }
 
     private void initializePlayer(List<Card> playerCards) {
+        PlayerDisplay.attach(playerName, playerHealth, cardsListView);
         Player player = Player.getInstance();
         player.setName(CardUtils.assignPlayerName(allCards));
         player.setHealth(GameConstants.Player.START_HEALTH);
@@ -123,29 +140,26 @@ public class MainController implements Initializable {
         }
     }
 
-    private void initializeChat() {
+    private void initializeChatAndLog() {
         if (isMultiplayer()) {
             try {
                 Registry registry = LocateRegistry.getRegistry(
                         ConfigurationReader.getStringValue(ConfigurationKey.HOSTNAME),
                         ConfigurationReader.getIntegerValue(ConfigurationKey.RMI_PORT));
                 chatRemoteService = (ChatRemoteService) registry.lookup(ChatRemoteService.REMOTE_OBJECT_NAME);
+                SharedLogService sharedLogService = (SharedLogService) registry.lookup(SharedLogService.REMOTE_OBJECT_NAME);
 
-                Timeline chatMessagesTimeline = ChatUtils.getChatTimeline(chatRemoteService, chatArea);
+                GameLogger.attach(sharedLogService);
+                Timeline chatMessagesTimeline = SharedUtils.getChatTimeline(chatRemoteService, sharedLogService,
+                        chatArea, gameLog);
                 chatMessagesTimeline.play();
 
             } catch (RemoteException | NotBoundException e) {
                 throw new ConfigurationException("An error occured while initializing the chat middleware!", e);
             }
+        } else {
+            GameLogger.attach(gameLog);
         }
-    }
-
-    public void handleSendMessage() {
-        String message = messageInput.getText().trim();
-        if (isMultiplayer() && !message.isEmpty()) {
-            ChatUtils.sendChatMessage(message, chatRemoteService);
-        }
-        messageInput.clear();
     }
 
     private static boolean isMultiplayer() {

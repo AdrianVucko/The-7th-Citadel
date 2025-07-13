@@ -3,9 +3,11 @@ package com.tvz.avuckovic.the7thcitadel.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.io.Serializable;
+
 @AllArgsConstructor
 @Getter
-public enum ExplorationArea {
+public enum ExplorationArea implements Serializable {
     FIRST("Area I"),
     SECOND("Area II"),
     THIRD("Area III"),

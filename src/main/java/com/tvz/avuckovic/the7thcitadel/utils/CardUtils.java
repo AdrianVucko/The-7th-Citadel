@@ -7,6 +7,8 @@ import com.tvz.avuckovic.the7thcitadel.model.*;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -61,6 +63,49 @@ public class CardUtils {
         Collections.shuffle(characterCards);
         return characterCards.isEmpty() ? TheSeventhCitadelApplication.applicationConfiguration.getPlayerType().name() :
                 characterCards.get(0).getDescription();
+    }
+
+    public static int evaluateAreaNumber(int cellNumber) {
+        BigDecimal numberOfFields = new BigDecimal(GameConstants.Board.ROWS * GameConstants.Board.COLS);
+        int split = numberOfFields.divide(new BigDecimal("10"), 0, RoundingMode.FLOOR).intValue();
+        for(int i = 0; i < 10; i++) {
+            if(cellNumber < ((i+1) * split)) {
+                return i;
+            }
+        }
+        return 10;
+    }
+
+    public static ExplorationArea evaluateExplorationAreaByNumber(int areaNumber) {
+        return switch (areaNumber) {
+            case 0 -> ExplorationArea.FIRST;
+            case 1 -> ExplorationArea.SECOND;
+            case 2 -> ExplorationArea.THIRD;
+            case 3 -> ExplorationArea.FOURTH;
+            case 4 -> ExplorationArea.FIFTH;
+            case 5 -> ExplorationArea.SIXTH;
+            case 6 -> ExplorationArea.SEVENTH;
+            case 7 -> ExplorationArea.EIGHT;
+            case 8 -> ExplorationArea.NINTH;
+            case 9 -> ExplorationArea.TENTH;
+            default -> ExplorationArea.NONE;
+        };
+    }
+
+    public static int evaluateAreaNumberByExplorationArea(ExplorationArea explorationArea) {
+        return switch (explorationArea) {
+            case FIRST -> 0;
+            case SECOND -> 1;
+            case THIRD -> 2;
+            case FOURTH -> 3;
+            case FIFTH -> 4;
+            case SIXTH -> 5;
+            case SEVENTH -> 6;
+            case EIGHT -> 7;
+            case NINTH -> 8;
+            case TENTH -> 9;
+            default -> 10;
+        };
     }
 
     public static List<Card> loadCards() {

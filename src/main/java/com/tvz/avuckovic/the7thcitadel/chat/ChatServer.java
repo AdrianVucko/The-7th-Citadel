@@ -17,9 +17,13 @@ public class ChatServer {
             Registry registry = LocateRegistry.createRegistry(ConfigurationReader.getIntegerValue(
                     ConfigurationKey.RMI_PORT));
             ChatRemoteService chatRemoteService = new ChatRemoteServiceImpl();
-            ChatRemoteService skeleton = (ChatRemoteService) UnicastRemoteObject.exportObject(chatRemoteService,
+            SharedLogService sharedLogService = new SharedLogServiceImpl();
+            ChatRemoteService chatSkeleton = (ChatRemoteService) UnicastRemoteObject.exportObject(chatRemoteService,
                     RANDOM_PORT_HINT);
-            registry.rebind(ChatRemoteService.REMOTE_OBJECT_NAME, skeleton);
+            SharedLogService sharedLogSkeleton = (SharedLogService) UnicastRemoteObject.exportObject(sharedLogService,
+                    RANDOM_PORT_HINT);
+            registry.rebind(ChatRemoteService.REMOTE_OBJECT_NAME, chatSkeleton);
+            registry.rebind(SharedLogService.REMOTE_OBJECT_NAME, sharedLogSkeleton);
         } catch (RemoteException e) {
             e.printStackTrace();
         }

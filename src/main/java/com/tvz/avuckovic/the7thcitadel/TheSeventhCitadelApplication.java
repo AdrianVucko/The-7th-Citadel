@@ -58,11 +58,12 @@ public class TheSeventhCitadelApplication extends Application {
     private static void configureApplicationExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             Throwable cause = unwrapCause(throwable);
-            if (cause instanceof ApplicationException) {
-                String message = cause.getMessage() != null ? cause.getMessage() : Message.UNKNOWN_ERROR.getText();
-                GameLogger.error(message);
+            if (cause instanceof ApplicationException applicationException) {
+                String message = applicationException.getMessage() != null ?
+                        applicationException.getMessage() : Message.UNKNOWN_ERROR.getText();
+                log(applicationException.getAlertType(), message);
                 DialogUtils.showDialog(
-                        Alert.AlertType.ERROR,
+                        applicationException.getAlertType(),
                         Message.SOMETHING_HAPPENED.getText(),
                         message,
                         ""
@@ -79,5 +80,15 @@ public class TheSeventhCitadelApplication extends Application {
             result = result.getCause();
         }
         return result;
+    }
+
+    private static void log(Alert.AlertType alertType, String message) {
+        if(alertType.equals(Alert.AlertType.INFORMATION)) {
+            GameLogger.info(message);
+        } else if (alertType.equals(Alert.AlertType.WARNING)) {
+            GameLogger.warn(message);
+        } else {
+            GameLogger.error(message);
+        }
     }
 }

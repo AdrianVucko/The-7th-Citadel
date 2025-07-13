@@ -3,12 +3,11 @@ package com.tvz.avuckovic.the7thcitadel.component;
 import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
 import com.tvz.avuckovic.the7thcitadel.model.ExplorationArea;
 import com.tvz.avuckovic.the7thcitadel.model.GameAction;
+import com.tvz.avuckovic.the7thcitadel.utils.CardUtils;
 import com.tvz.avuckovic.the7thcitadel.utils.DialogUtils;
 import javafx.scene.layout.StackPane;
 import lombok.Getter;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Arrays;
 
 @Getter
@@ -16,12 +15,15 @@ public class Field extends StackPane {
     private final int row;
     private final int col;
     private boolean revealed;
+    private boolean winning;
+    private ExplorationArea winningExplorationArea;
     private GameAction action;
 
     public Field(int row, int col) {
         this.row = row;
         this.col = col;
         this.revealed = false;
+        this.winning = false;
 
         setPrefSize(100, 100);
         setStyle("-fx-background-color: transparent;");
@@ -36,45 +38,40 @@ public class Field extends StackPane {
         action = gameAction;
     }
 
-    public void triggerAction() {
+    public boolean triggerAction() {
         if(action != null) {
-            DialogUtils.showActionDialog(action);
+            return DialogUtils.showActionDialog(getWinningExplorationArea(), getExplorationArea(), action);
         }
+        return false;
+    }
+
+    public void setWinningExplorationArea(ExplorationArea explorationArea) {
+        this.winningExplorationArea = explorationArea;
     }
 
     public ExplorationArea getExplorationArea() {
         int areaNumber = evaluateAreaNumber();
-        return switch (areaNumber) {
-            case 0 -> ExplorationArea.FIRST;
-            case 1 -> ExplorationArea.SECOND;
-            case 2 -> ExplorationArea.THIRD;
-            case 3 -> ExplorationArea.FOURTH;
-            case 4 -> ExplorationArea.FIFTH;
-            case 5 -> ExplorationArea.SIXTH;
-            case 6 -> ExplorationArea.SEVENTH;
-            case 7 -> ExplorationArea.EIGHT;
-            case 8 -> ExplorationArea.NINTH;
-            case 9 -> ExplorationArea.TENTH;
-            default -> ExplorationArea.NONE;
-        };
+        return CardUtils.evaluateExplorationAreaByNumber(areaNumber);
     }
 
     public int getCellNumber() {
         return getRow() * GameConstants.Board.ROWS + getCol();
     }
 
-    private int evaluateAreaNumber() {
-        BigDecimal numberOfFields = new BigDecimal(GameConstants.Board.ROWS * GameConstants.Board.COLS);
-        int split = numberOfFields.divide(new BigDecimal("10"), 0, RoundingMode.FLOOR).intValue();
-        for(int i = 0; i < 10; i++) {
-            if(getCellNumber() < ((i+1) * split)) {
-                return i;
-            }
-        }
-        return 10;
-    }
-
     public void markAsRevealed() {
         this.revealed = true;
+    }
+
+    public void markAsWinning() {
+        this.winning = true;
+        highlight();
+    }
+
+    public void highlight() {
+        setStyle("-fx-border-color: yellow; -fx-background-color: rgba(255,255,0,0.3);");
+    }
+
+    private int evaluateAreaNumber() {
+        return CardUtils.evaluateAreaNumber(getCellNumber());
     }
 }

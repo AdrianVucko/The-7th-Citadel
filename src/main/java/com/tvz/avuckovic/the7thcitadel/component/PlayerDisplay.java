@@ -17,7 +17,6 @@ public class PlayerDisplay {
         playerName = name;
         playerHealth = health;
         playerCards = cardsListView;
-        GameLogger.log(Message.PLAYER_DISPLAY_CONNECTED.getText());
     }
 
     public static void fillPlayerLabels() {
