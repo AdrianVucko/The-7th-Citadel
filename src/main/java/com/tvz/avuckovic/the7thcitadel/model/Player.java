@@ -26,6 +26,18 @@ public class Player implements Serializable {
         return instance;
     }
 
+    public static void copyAttributes(Player player) {
+        instance.setName(player.getName());
+        instance.setHealth(player.getHealth());
+        instance.setMaxHealth(player.getMaxHealth());
+        instance.setActionDeck(player.getActionDeck());
+        instance.setDiscardPile(player.getDiscardPile());
+    }
+
+    public static Player create() {
+        return new Player();
+    }
+
     public void modifyHealth(int delta) {
         this.health += delta;
         if(this.health < 0) {

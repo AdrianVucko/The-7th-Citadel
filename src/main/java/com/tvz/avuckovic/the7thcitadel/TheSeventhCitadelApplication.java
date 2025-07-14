@@ -3,6 +3,7 @@ package com.tvz.avuckovic.the7thcitadel;
 import com.tvz.avuckovic.the7thcitadel.component.GameLogger;
 import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
 import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
+import com.tvz.avuckovic.the7thcitadel.exception.ConfigurationException;
 import com.tvz.avuckovic.the7thcitadel.model.ApplicationConfiguration;
 import com.tvz.avuckovic.the7thcitadel.model.Message;
 import com.tvz.avuckovic.the7thcitadel.model.PlayerType;
@@ -67,6 +68,16 @@ public class TheSeventhCitadelApplication extends Application {
                         Message.SOMETHING_HAPPENED.getText(),
                         message,
                         ""
+                );
+            } else if (cause instanceof ConfigurationException configurationException) {
+                String message = configurationException.getMessage() != null ?
+                        configurationException.getMessage() : Message.UNKNOWN_ERROR.getText();
+                log(Alert.AlertType.ERROR, message);
+                DialogUtils.showDialog(
+                        Alert.AlertType.ERROR,
+                        Message.SOMETHING_HAPPENED.getText(),
+                        Message.SUPPORT.getText(),
+                        message
                 );
             } else {
                 throwable.printStackTrace();

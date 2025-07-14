@@ -2,23 +2,16 @@ package com.tvz.avuckovic.the7thcitadel.controller;
 
 import com.tvz.avuckovic.the7thcitadel.TheSeventhCitadelApplication;
 import com.tvz.avuckovic.the7thcitadel.chat.ChatRemoteService;
-import com.tvz.avuckovic.the7thcitadel.chat.SharedLogService;
 import com.tvz.avuckovic.the7thcitadel.component.CardCell;
 import com.tvz.avuckovic.the7thcitadel.component.GameLogger;
 import com.tvz.avuckovic.the7thcitadel.component.GameMap;
 import com.tvz.avuckovic.the7thcitadel.component.PlayerDisplay;
 import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
 import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
-import com.tvz.avuckovic.the7thcitadel.exception.ConfigurationException;
-import com.tvz.avuckovic.the7thcitadel.jndi.ConfigurationKey;
-import com.tvz.avuckovic.the7thcitadel.jndi.ConfigurationReader;
 import com.tvz.avuckovic.the7thcitadel.model.*;
-import com.tvz.avuckovic.the7thcitadel.utils.CardUtils;
-import com.tvz.avuckovic.the7thcitadel.utils.SharedUtils;
-import com.tvz.avuckovic.the7thcitadel.utils.GameActionUtils;
-import javafx.animation.Timeline;
+import com.tvz.avuckovic.the7thcitadel.utils.*;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
@@ -26,14 +19,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 
-import java.net.URL;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-public class MainController implements Initializable {
+public class MainController {
     @FXML public TextArea chatArea;
     @FXML public TextField messageInput;
     @FXML public Label playerName;
@@ -48,17 +39,29 @@ public class MainController implements Initializable {
     private Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea;
     private GameAction winningAction;
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    public void init() {
         allCards = CardUtils.loadCards();
         List<Card> playerCards = CardUtils.drawShuffledActionCards(allCards);
+        initializePlayer(playerCards);
         cardsListView.setCellFactory(list -> new CardCell());
         cardsListView.getItems().setAll(playerCards);
         progressDraw.setPickOnBounds(false);
         gameMap.connectComponents(progressDraw);
-        initializePlayer(playerCards);
         initializeChatAndLog();
-        initializeActionFields();
+        initializeActionFields(null);
+        gameMap.saveGameMove();
+    }
+
+    public void init(GameState gameState) {
+        allCards = CardUtils.loadCards();
+        loadPlayer(gameState);
+        cardsListView.setCellFactory(list -> new CardCell());
+        cardsListView.getItems().setAll(Player.getInstance().getActionDeck());
+        progressDraw.setPickOnBounds(false);
+        gameMap.connectComponents(progressDraw);
+        initializeChatAndLog();
+        initializeActionFields(gameState);
+        Platform.runLater(() -> gameMap.markCompletedFields(gameState.getCompletedFields()));
     }
 
     public void acquireSkill() {
@@ -71,6 +74,7 @@ public class MainController implements Initializable {
         cardsListView.getItems().add(unusedCard);
         decrementPlayerHealth();
         PlayerDisplay.fillPlayerLabels();
+        gameMap.saveGameMove();
     }
 
     public void useSkill() {
@@ -87,6 +91,7 @@ public class MainController implements Initializable {
 
             incrementPlayerHealth();
             PlayerDisplay.fillPlayerLabels();
+            gameMap.saveGameMove();
         }, () -> GameLogger.warn(Message.NO_SKILL_SELECTED.getText()));
     }
 
@@ -98,12 +103,37 @@ public class MainController implements Initializable {
         messageInput.clear();
     }
 
-    private void initializeActionFields() {
+    public void saveGame() {
+        if(isMultiplayer()) {
+            //TODO: To be implemented
+        } else {
+            GameStateUtils.save(actionsPerExplorationArea, winningAction, gameMap.getCompletedFields());
+        }
+    }
+
+    public GameState replayedState() {
+        if(!FileUtils.fileExists(XmlUtils.GAME_MOVES_XML_FILE_NAME)) {
+            throw new ApplicationException("File that contains moves doesn't exist");
+        }
+        List<GameMove> gameMoves = XmlUtils.readGameMovesFromXmlFile();
+        if (gameMoves.size() < 2) {
+            throw new ApplicationException("You need to make a move first");
+        }
+        List<GameMove> replayedGameMoves = gameMoves.subList(0, gameMoves.size() - 1);
+        XmlUtils.saveGameMovesToXmlFile(replayedGameMoves);
+        GameMove replayedGameMove = replayedGameMoves.get(replayedGameMoves.size() - 1);
+        return GameStateUtils.buildGameState(actionsPerExplorationArea, winningAction, replayedGameMove);
+    }
+
+    private void initializeActionFields(GameState gameState) {
         boolean actionsDistributed;
+        Optional<GameState> optionalGameState = Optional.ofNullable(gameState);
+        List<GameAction> gameActions = GameActionUtils.loadGameActions();
         do {
-            List<GameAction> gameActions = GameActionUtils.loadGameActions();
-            actionsPerExplorationArea = GameActionUtils.distributeActions(gameActions);
-            winningAction = GameActionUtils.selectRandomActionPerExplorationArea(actionsPerExplorationArea);
+            actionsPerExplorationArea = optionalGameState.map(GameState::getActionsPerExplorationArea)
+                    .orElse(GameActionUtils.distributeActions(gameActions));
+            winningAction = optionalGameState.map(GameState::getWinningAction)
+                    .orElse(GameActionUtils.selectRandomActionPerExplorationArea(actionsPerExplorationArea));
             actionsDistributed = gameMap.distributeActions(actionsPerExplorationArea, winningAction);
         } while (!actionsDistributed);
     }
@@ -111,6 +141,12 @@ public class MainController implements Initializable {
     private Optional<Card> getSelectedCard() {
         Card selectedItem = cardsListView.getSelectionModel().getSelectedItem();
         return Optional.ofNullable(selectedItem);
+    }
+
+    private void loadPlayer(GameState gameState) {
+        PlayerDisplay.attach(playerName, playerHealth, cardsListView);
+        Player.copyAttributes(gameState.getPlayerOne());
+        PlayerDisplay.fillPlayerLabels();
     }
 
     private void initializePlayer(List<Card> playerCards) {
@@ -142,21 +178,7 @@ public class MainController implements Initializable {
 
     private void initializeChatAndLog() {
         if (isMultiplayer()) {
-            try {
-                Registry registry = LocateRegistry.getRegistry(
-                        ConfigurationReader.getStringValue(ConfigurationKey.HOSTNAME),
-                        ConfigurationReader.getIntegerValue(ConfigurationKey.RMI_PORT));
-                chatRemoteService = (ChatRemoteService) registry.lookup(ChatRemoteService.REMOTE_OBJECT_NAME);
-                SharedLogService sharedLogService = (SharedLogService) registry.lookup(SharedLogService.REMOTE_OBJECT_NAME);
-
-                GameLogger.attach(sharedLogService);
-                Timeline chatMessagesTimeline = SharedUtils.getChatTimeline(chatRemoteService, sharedLogService,
-                        chatArea, gameLog);
-                chatMessagesTimeline.play();
-
-            } catch (RemoteException | NotBoundException e) {
-                throw new ConfigurationException("An error occured while initializing the chat middleware!", e);
-            }
+            chatRemoteService = SharedUtils.initializeChatAndLogTimeline(chatArea, gameLog);
         } else {
             GameLogger.attach(gameLog);
         }

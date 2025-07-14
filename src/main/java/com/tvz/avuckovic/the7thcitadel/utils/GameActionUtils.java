@@ -1,33 +1,23 @@
 package com.tvz.avuckovic.the7thcitadel.utils;
 
-import com.tvz.avuckovic.the7thcitadel.RootController;
-import com.tvz.avuckovic.the7thcitadel.controller.ActionDisplayController;
+import com.tvz.avuckovic.the7thcitadel.component.Field;
 import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
 import com.tvz.avuckovic.the7thcitadel.model.ExplorationArea;
 import com.tvz.avuckovic.the7thcitadel.model.GameAction;
 import com.tvz.avuckovic.the7thcitadel.model.SkillType;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.layout.AnchorPane;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static com.tvz.avuckovic.the7thcitadel.constants.GameConstants.Board.COLS;
+import static com.tvz.avuckovic.the7thcitadel.constants.GameConstants.Board.ROWS;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class GameActionUtils {
-    public static AnchorPane createDisplay(GameAction action) {
-        try {
-            FXMLLoader loader = new FXMLLoader(RootController.class.getResource("fxml/action-display.fxml"));
-            AnchorPane pane = loader.load();
-            ActionDisplayController controller = loader.getController();
-            controller.setAction(action);
-            return pane;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
 
     public static List<GameAction> loadGameActions() {
         if(!FileUtils.fileExists("dat/game_actions.ser")) {
@@ -66,6 +56,27 @@ public class GameActionUtils {
         return actions.get(0);
     }
 
+    public static boolean distributeActionsOnMap(Field[][] cells,
+                                                 Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea,
+                                                 GameAction winningAction) {
+        AtomicInteger numberOfWinningActions = new AtomicInteger();
+        AtomicInteger numberOfWinningActionsInWater = new AtomicInteger();
+        executeForEachField(cells, field -> {
+            List<GameAction> actions = actionsPerExplorationArea.get(field.getExplorationArea());
+            GameAction gameAction = actions.get(field.getCellNumber() % actions.size());
+            if(gameAction.equals(winningAction) && field.isFieldInWater()) {
+                numberOfWinningActions.getAndIncrement();
+                numberOfWinningActionsInWater.getAndIncrement();
+            } else if (gameAction.equals(winningAction)) {
+                numberOfWinningActions.getAndIncrement();
+                field.markAsWinning();
+                executeForEachField(cells, field1 -> field1.setWinningExplorationArea(field.getExplorationArea()));
+            }
+            field.assignAction(gameAction);
+        });
+        return numberOfWinningActions.get() != numberOfWinningActionsInWater.get();
+    }
+
     private static List<GameAction> saveGameActions() {
         List<GameAction> gameActions = FileUtils
                 .readRowAttributesForFile("dat/game_actions.txt", true).stream()
@@ -86,5 +97,13 @@ public class GameActionUtils {
         int healthGain = Integer.parseInt(actionAttributes[4]);
         int healthLoss = Integer.parseInt(actionAttributes[5]);
         return new GameAction(description, skillType, cardsNeeded, pointsNeeded, healthGain, healthLoss);
+    }
+
+    private static void executeForEachField(Field[][] cells, Consumer<Field> action) {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                action.accept(cells[row][col]);
+            }
+        }
     }
 }

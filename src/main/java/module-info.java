@@ -6,6 +6,7 @@ module com.example.the7thcitadel {
     requires static lombok;
     requires java.rmi;
     requires java.naming;
+    requires java.xml;
 
     opens com.tvz.avuckovic.the7thcitadel to javafx.fxml;
     exports com.tvz.avuckovic.the7thcitadel;

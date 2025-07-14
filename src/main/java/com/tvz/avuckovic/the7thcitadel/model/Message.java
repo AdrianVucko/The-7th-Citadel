@@ -17,6 +17,7 @@ public enum Message {
     END("You died!"),
     ALREADY_DEAD("You can't make moves because you are dead!"),
     SOMETHING_HAPPENED("Something happened"),
+    SUPPORT("Error occurred while setting up application! Contact support"),
     UNKNOWN_ERROR("An unknown error occurred.");
 
     private final String text;

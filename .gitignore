@@ -40,3 +40,6 @@ build/
 ### Generated files ###
 /dat/cards.ser
 /dat/game_actions.ser
+/dat/savedGame.ser
+/dat/gameMoves.xml
+/doc/documentation.html

@@ -1,22 +1,23 @@
 package com.tvz.avuckovic.the7thcitadel.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-@NoArgsConstructor
-@AllArgsConstructor
+@SuperBuilder
 @Setter
 @Getter
-public class GameState implements Serializable {
-    private Player playerOne;
-    private Player playerTwo;
+public class GameState extends GameMove implements Serializable {
     private Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea;
-    private Map.Entry<ExplorationArea, GameAction> winningAction;
-    private List<Integer> completedFields;
+    private GameAction winningAction;
+
+    public GameState(Player playerOne, Player playerTwo, List<Integer> completedFields,
+                     Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea, GameAction winningAction) {
+        super(playerOne, playerTwo, completedFields);
+        this.actionsPerExplorationArea = actionsPerExplorationArea;
+        this.winningAction = winningAction;
+    }
 }

@@ -7,13 +7,17 @@
     <top>
         <MenuBar>
             <Menu text="Game">
-                <MenuItem onAction="#displayGame" text="New Game"/>
-                <MenuItem fx:id="saveMenuItem" text="Save Game"/>
-                <MenuItem text="Load Game"/>
+                <MenuItem onAction="#displayNewGame" text="New"/>
+                <MenuItem fx:id="saveMenuItem" onAction="#saveGame" text="Save"/>
+                <MenuItem onAction="#loadGame" text="Load"/>
+                <MenuItem fx:id="replayMenuItem" onAction="#replayGame" text="Replay"/>
             </Menu>
             <Menu text="Help">
                 <MenuItem onAction="#displayRules" text="Rules"/>
                 <MenuItem onAction='#displayAbout' text="About"/>
+            </Menu>
+            <Menu text="Documentation">
+                <MenuItem onAction="#generateDocumentation" text="Generate"/>
             </Menu>
         </MenuBar>
     </top>

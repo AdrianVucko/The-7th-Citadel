@@ -2,25 +2,18 @@ package com.tvz.avuckovic.the7thcitadel.component;
 
 import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
 import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
-import com.tvz.avuckovic.the7thcitadel.model.ExplorationArea;
-import com.tvz.avuckovic.the7thcitadel.model.GameAction;
-import com.tvz.avuckovic.the7thcitadel.model.Message;
-import com.tvz.avuckovic.the7thcitadel.model.Player;
-import com.tvz.avuckovic.the7thcitadel.utils.DialogUtils;
-import javafx.geometry.Bounds;
-import javafx.geometry.Point2D;
-import javafx.scene.Node;
+import com.tvz.avuckovic.the7thcitadel.model.*;
+import com.tvz.avuckovic.the7thcitadel.utils.*;
 import javafx.scene.control.Alert;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.RowConstraints;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,7 +23,9 @@ public class GameMap extends GridPane {
     private static final int ROWS = GameConstants.Board.ROWS;
     private static final int COLS = GameConstants.Board.COLS;
     private final Field[][] cells = new Field[ROWS][COLS];
-    private boolean isWaterWarningTriggered = false;
+    private final List<Integer> completedFields;
+    private boolean waterWarningTriggered = false;
+    private boolean playerDrowned = false;
     private Field startField = null;
     private Pane progressDraw = null;
 
@@ -58,6 +53,7 @@ public class GameMap extends GridPane {
                 cells[row][col] = cell;
             }
         }
+        completedFields = new ArrayList<>();
     }
 
     public void connectComponents(Pane progressDraw) {
@@ -65,24 +61,30 @@ public class GameMap extends GridPane {
         executeForEachField(field -> field.setOnMouseClicked(e -> onMapFieldClick(field)));
     }
 
-    public boolean distributeActions(Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea, GameAction winningAction) {
-        AtomicBoolean actionsDistributed = new AtomicBoolean(true);
-        executeForEachField(field -> {
-            List<GameAction> actions = actionsPerExplorationArea.get(field.getExplorationArea());
-            GameAction gameAction = actions.get(field.getCellNumber() % actions.size());
-            if(gameAction.equals(winningAction) && field.isFieldInWater()) {
-                actionsDistributed.set(false);
-            } else if (gameAction.equals(winningAction)) {
-                field.markAsWinning();
-                assignWinningExplorationAreaToFields(field.getExplorationArea());
-            }
-            field.assignAction(gameAction);
-        });
-        return actionsDistributed.get();
+    public boolean distributeActions(Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea,
+                                     GameAction winningAction) {
+        return GameActionUtils.distributeActionsOnMap(cells, actionsPerExplorationArea, winningAction);
     }
 
-    private void assignWinningExplorationAreaToFields(ExplorationArea winningExplorationArea) {
-        executeForEachField(field -> field.setWinningExplorationArea(winningExplorationArea));
+    public List<Integer> getCompletedFields() {
+        return completedFields;
+    }
+
+    public void markCompletedFields(List<Integer> completedFields) {
+        this.completedFields.clear();
+        this.completedFields.addAll(completedFields);
+        for (Integer completedField : this.completedFields) {
+            Arrays.stream(cells)
+                    .flatMap(Arrays::stream)
+                    .filter(field -> field.getCellNumber() == completedField)
+                    .findFirst()
+                    .ifPresent(this::drawDirection);
+        }
+    }
+
+    public void saveGameMove() {
+        GameMove gameMove = buildGameMove();
+        XmlUtils.saveGameMove(gameMove);
     }
 
     private void onMapFieldClick(Field field) {
@@ -92,47 +94,29 @@ public class GameMap extends GridPane {
                 GameLogger.warn("You have found the final task, but failed it! Try again");
                 field.highlight();
             } else {
-                revealField(field, actionCompleted);
+                completeField(field, actionCompleted);
             }
         }
     }
 
-    private void revealField(Field field, boolean actionCompleted) {
-        if(startField != null) {
-            drawPoint(startField);
-            drawLine(startField, field);
-        } else {
-            drawPoint(field);
-        }
-        startField = field;
-        field.markAsRevealed();
+    private void completeField(Field field, boolean actionCompleted) {
+        drawDirection(field);
+        completedFields.add(field.getCellNumber());
+        saveGameMove();
         if (field.isWinning() && actionCompleted) {
             throw new ApplicationException(Message.GAME_WON.getText(), Alert.AlertType.INFORMATION);
         }
     }
 
-    private void drawPoint(Field startField) {
-        Point2D start = getCenterInScene(startField);
-
-        Circle redDot = new Circle();
-        redDot.setCenterX(start.getX());
-        redDot.setCenterY(start.getY());
-        redDot.setRadius(5);
-        redDot.setFill(Color.RED);
-
-        this.progressDraw.getChildren().add(redDot);
-    }
-
-    private void drawLine(Field startField, Field endField) {
-        Point2D start = getCenterInScene(startField);
-        Point2D end = getCenterInScene(endField);
-
-        Line dottedLine = new Line(start.getX(), start.getY(), end.getX(), end.getY());
-        dottedLine.getStrokeDashArray().addAll(10.0, 5.0);
-        dottedLine.setStrokeWidth(2);
-        dottedLine.setStroke(Color.RED);
-
-        this.progressDraw.getChildren().add(dottedLine);
+    private void drawDirection(Field field) {
+        if(startField != null) {
+            DrawingUtils.drawPoint(progressDraw, startField);
+            DrawingUtils.drawLine(progressDraw, startField, field);
+        } else {
+            DrawingUtils.drawPoint(progressDraw, field);
+        }
+        startField = field;
+        field.markAsRevealed();
     }
 
     private boolean isClickPossible(Field field) {
@@ -145,15 +129,17 @@ public class GameMap extends GridPane {
         }
 
         boolean fieldInWater = field.isFieldInWater();
-        if(fieldInWater && isWaterWarningTriggered) {
-            throw new ApplicationException(Message.PLAYER_DROWNED.getText());
-        }
-        if(fieldInWater) {
+        if(fieldInWater && waterWarningTriggered) {
+            playerDrowned = true;
+        } else if(fieldInWater) {
             DialogUtils.showDialog(Alert.AlertType.WARNING, Message.PLAYER_WILL_DROWN_WARNING.getText(),
                     Message.PLAYER_WILL_DROWN_WARNING.getText(),"");
             GameLogger.warn(Message.PLAYER_WILL_DROWN_WARNING.getText());
-            isWaterWarningTriggered = true;
+            waterWarningTriggered = true;
             return false;
+        }
+        if (playerDrowned) {
+            throw new ApplicationException(Message.PLAYER_DROWNED.getText());
         }
 
         if(field.isRevealed()) {
@@ -173,7 +159,7 @@ public class GameMap extends GridPane {
         return gameWon.get();
     }
 
-    public void executeForEachField(Consumer<Field> action) {
+    private void executeForEachField(Consumer<Field> action) {
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
                 action.accept(cells[row][col]);
@@ -181,16 +167,12 @@ public class GameMap extends GridPane {
         }
     }
 
-    private Point2D getCenterInScene(Node node) {
-        Bounds bounds = node.localToScene(node.getBoundsInLocal());
-        Bounds relativeTo = progressDraw.sceneToLocal(bounds);
-        double x = relativeTo.getMinX() + relativeTo.getWidth() / 2;
-        double y = relativeTo.getMinY() + relativeTo.getHeight() / 2;
-        return new Point2D(x, y);
-    }
-
     private BigDecimal calculatePercentageSplit(int count) {
         BigDecimal divisor = new BigDecimal(count);
         return new BigDecimal("100.00").divide(divisor, 2, RoundingMode.UP);
+    }
+
+    private GameMove buildGameMove() {
+        return GameStateUtils.buildGameMove(completedFields);
     }
 }

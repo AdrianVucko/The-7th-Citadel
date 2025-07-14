@@ -1,12 +1,10 @@
 package com.tvz.avuckovic.the7thcitadel;
 
-import com.tvz.avuckovic.the7thcitadel.chat.SharedLogService;
-import com.tvz.avuckovic.the7thcitadel.component.GameLogger;
+import com.tvz.avuckovic.the7thcitadel.controller.MainController;
+import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
 import com.tvz.avuckovic.the7thcitadel.exception.ConfigurationException;
-import com.tvz.avuckovic.the7thcitadel.jndi.ConfigurationKey;
-import com.tvz.avuckovic.the7thcitadel.jndi.ConfigurationReader;
-import com.tvz.avuckovic.the7thcitadel.model.ActiveScene;
-import com.tvz.avuckovic.the7thcitadel.model.PlayerType;
+import com.tvz.avuckovic.the7thcitadel.model.*;
+import com.tvz.avuckovic.the7thcitadel.utils.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -16,63 +14,104 @@ import javafx.scene.layout.StackPane;
 
 import java.io.IOException;
 import java.net.URL;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class RootController implements Initializable {
     @FXML
     public MenuItem saveMenuItem;
     @FXML
+    public MenuItem replayMenuItem;
+    @FXML
     public StackPane sceneContainer;
+
+    private Object currentController;
+    private GameState replayedState;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        displayGame();
+        displayNewGame();
     }
 
-    public void displayGame() {
+    public void displayNewGame() {
+        XmlUtils.clearMoves();
         clearLogger();
-        displayScene(ActiveScene.MAIN);
+        displayScene(ActiveScene.MAIN, GameMode.NONE);
     }
 
     public void displayRules() {
-        displayScene(ActiveScene.RULES);
+        displayScene(ActiveScene.RULES, GameMode.NONE);
     }
 
     public void displayAbout() {
-        displayScene(ActiveScene.ABOUT);
+        displayScene(ActiveScene.ABOUT, GameMode.NONE);
     }
 
-    private void displayScene(ActiveScene activeScene) {
+    public void generateDocumentation() {
+        DocumentationUtils.generateDocumentation();
+    }
+
+    public void saveGame() {
+        getCurrentController(MainController.class).ifPresent(MainController::saveGame);
+    }
+
+    public void loadGame() {
+        if(!FileUtils.fileExists("dat/savedGame.ser")) {
+            throw new ApplicationException("Game needs to be saved first");
+        }
+        XmlUtils.clearMoves();
+        displayScene(ActiveScene.MAIN, GameMode.LOAD);
+    }
+
+    public void replayGame() {
+        replayedState = getCurrentController(MainController.class)
+                .map(MainController::replayedState)
+                .orElseThrow(() -> new ConfigurationException("Replay is not possible from other pages"));
+        displayScene(ActiveScene.MAIN, GameMode.REPLAY);
+    }
+
+    private void displayScene(ActiveScene activeScene, GameMode gameMode) {
         try {
             saveMenuItem.setDisable(activeScene != ActiveScene.MAIN);
+            replayMenuItem.setDisable(activeScene != ActiveScene.MAIN);
             FXMLLoader loader = new FXMLLoader(getClass().getResource(activeScene.getFilePath()));
             Parent content = loader.load();
+            currentController = loader.getController();
+            getCurrentController(MainController.class).ifPresent(main -> initializeMainScene(main, gameMode));
             sceneContainer.getChildren().setAll(content);
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
     }
 
+    private void initializeMainScene(MainController mainController, GameMode gameMode) {
+        if(gameMode.equals(GameMode.LOAD)) {
+            GameState gameState = GameStateUtils.loadGame();
+            mainController.init(gameState);
+        } else if (gameMode.equals(GameMode.REPLAY)) {
+            if(replayedState == null) {
+                throw new ConfigurationException("Replayed state does not exist");
+            }
+            mainController.init(replayedState);
+        } else {
+            mainController.init();
+        }
+    }
+
     private void clearLogger() {
         if (isMultiplayer()) {
-            try {
-                Registry registry = LocateRegistry.getRegistry(
-                        ConfigurationReader.getStringValue(ConfigurationKey.HOSTNAME),
-                        ConfigurationReader.getIntegerValue(ConfigurationKey.RMI_PORT));
-                SharedLogService sharedLogService = (SharedLogService) registry.lookup(SharedLogService.REMOTE_OBJECT_NAME);
-                sharedLogService.clearLogs();
-                GameLogger.clearLogs();
-            } catch (RemoteException | NotBoundException e) {
-                throw new ConfigurationException("An error occurred while clearing logs!", e);
-            }
+            SharedUtils.clearLogs();
         }
     }
 
     private static boolean isMultiplayer() {
         return !TheSeventhCitadelApplication.applicationConfiguration.getPlayerType().equals(PlayerType.SINGLE_PLAYER);
+    }
+
+    public <T> Optional<T> getCurrentController(Class<T> controllerType) {
+        if (controllerType.isInstance(currentController)) {
+            return Optional.of(controllerType.cast(currentController));
+        }
+        return Optional.empty();
     }
 }

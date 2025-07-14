@@ -64,6 +64,7 @@ public class Field extends StackPane {
 
     public void markAsWinning() {
         this.winning = true;
+        // For easier presentation
         highlight();
     }
 

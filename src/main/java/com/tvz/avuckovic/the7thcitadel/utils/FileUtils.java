@@ -31,11 +31,27 @@ public class FileUtils {
         }
     }
 
+    public static <T extends Serializable> T  loadObjectFromFile(String fileName) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
+            return (T) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException("An error occurred while loading object!", e);
+        }
+    }
+
     public static <T extends Serializable> List<T>  loadObjectsFromFile(String fileName) {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
             return (List<T>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException("An error occurred while loading objects!", e);
+        }
+    }
+
+    public static <T extends Serializable> void writeObject(String filePath, T object) {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filePath))) {
+            out.writeObject(object);
+        } catch (IOException e) {
+            throw new RuntimeException("An error occurred while saving object!", e);
         }
     }
 
@@ -50,6 +66,11 @@ public class FileUtils {
     public static boolean fileExists(String pathName) {
         File file = new File(pathName);
         return file.exists();
+    }
+
+    public static boolean deleteFile(String pathName) {
+        File file = new File(pathName);
+        return file.delete();
     }
 
     public static String getDiskRoot() {
