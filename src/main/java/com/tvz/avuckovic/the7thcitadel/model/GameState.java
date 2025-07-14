@@ -10,6 +10,7 @@ import java.util.Map;
 @SuperBuilder
 @Setter
 @Getter
+@EqualsAndHashCode(callSuper = true)
 public class GameState extends GameMove implements Serializable {
     private Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea;
     private GameAction winningAction;

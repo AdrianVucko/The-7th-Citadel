@@ -31,7 +31,7 @@ public class Field extends StackPane {
 
     public boolean isFieldInWater() {
         int cellNumber = getCellNumber();
-        return Arrays.stream(GameConstants.Board.WATER_FIELDS).anyMatch(waterField -> waterField == cellNumber);
+        return GameConstants.Board.WATER_FIELDS.stream().anyMatch(waterField -> waterField == cellNumber);
     }
 
     public void assignAction(GameAction gameAction) {

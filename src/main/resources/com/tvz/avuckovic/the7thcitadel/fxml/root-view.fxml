@@ -7,7 +7,7 @@
     <top>
         <MenuBar>
             <Menu text="Game">
-                <MenuItem onAction="#displayNewGame" text="New"/>
+                <MenuItem onAction="#newGame" text="New"/>
                 <MenuItem fx:id="saveMenuItem" onAction="#saveGame" text="Save"/>
                 <MenuItem onAction="#loadGame" text="Load"/>
                 <MenuItem fx:id="replayMenuItem" onAction="#replayGame" text="Replay"/>

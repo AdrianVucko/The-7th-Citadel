@@ -1,6 +1,5 @@
 package com.tvz.avuckovic.the7thcitadel.utils;
 
-import com.tvz.avuckovic.the7thcitadel.TheSeventhCitadelApplication;
 import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
 import com.tvz.avuckovic.the7thcitadel.model.*;
 import lombok.AccessLevel;

@@ -12,8 +12,10 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
+import java.util.Random;
 
 public class GameActionDialog extends Dialog<Boolean> {
+    private static final Random RANDOM = new Random();
     private boolean diceRolled = false;
     private boolean cardsSubmitted = false;
     private boolean taskFailed = false;
@@ -66,7 +68,7 @@ public class GameActionDialog extends Dialog<Boolean> {
         finishButton.setDisable(true);
 
         setOnHidden(event -> giveUp());
-        setResultConverter((buttonType) -> getActionCompleted());
+        setResultConverter(buttonType -> getActionCompleted());
     }
 
     private void giveUp() {
@@ -113,7 +115,7 @@ public class GameActionDialog extends Dialog<Boolean> {
         StringBuilder resultDisplay = new StringBuilder("🎲 Dice roll: ");
 
         for (int i = 0; i < diceCount; i++) {
-            int roll = new java.util.Random().nextInt(3); // 0–2 stars per die
+            int roll = RANDOM.nextInt(3); // 0–2 stars per die
             totalStars += roll;
             resultDisplay.append("[").append("⭐".repeat(roll)).append("] ");
         }

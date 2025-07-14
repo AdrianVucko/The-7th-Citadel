@@ -1,17 +1,19 @@
 package com.tvz.avuckovic.the7thcitadel.component;
 
 import com.tvz.avuckovic.the7thcitadel.model.Card;
-import com.tvz.avuckovic.the7thcitadel.model.Message;
 import com.tvz.avuckovic.the7thcitadel.model.Player;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PlayerDisplay {
-    public static Label playerName;
-    public static Label playerHealth;
-    public static ListView<Card> playerCards;
+    private static Label playerName;
+    private static Label playerHealth;
+    private static ListView<Card> playerCards;
 
     public static void attach(Label name, Label health, ListView<Card> cardsListView) {
         playerName = name;

@@ -61,7 +61,10 @@ public class MainController {
         gameMap.connectComponents(progressDraw);
         initializeChatAndLog();
         initializeActionFields(gameState);
-        Platform.runLater(() -> gameMap.markCompletedFields(gameState.getCompletedFields()));
+        Platform.runLater(() -> {
+            gameMap.markCompletedFields(gameState.getCompletedFields());
+            gameMap.saveGameMove();
+        });
     }
 
     public void acquireSkill() {

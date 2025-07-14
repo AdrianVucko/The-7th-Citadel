@@ -30,13 +30,7 @@ public class RootController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        displayNewGame();
-    }
-
-    public void displayNewGame() {
-        XmlUtils.clearMoves();
-        clearLogger();
-        displayScene(ActiveScene.MAIN, GameMode.NONE);
+        newGame();
     }
 
     public void displayRules() {
@@ -49,6 +43,12 @@ public class RootController implements Initializable {
 
     public void generateDocumentation() {
         DocumentationUtils.generateDocumentation();
+    }
+
+    public void newGame() {
+        XmlUtils.clearMoves();
+        clearLogger();
+        displayScene(ActiveScene.MAIN, GameMode.NONE);
     }
 
     public void saveGame() {

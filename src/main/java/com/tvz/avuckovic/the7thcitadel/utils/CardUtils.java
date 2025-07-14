@@ -17,6 +17,9 @@ import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CardUtils {
+
+    private static final String CARDS_FILE = "dat/cards.ser";
+
     public static List<Card> drawShuffledActionCards(List<Card> deck) {
         if (deck == null || deck.isEmpty()) {
             throw new IllegalArgumentException("Deck cannot be null or empty.");
@@ -48,7 +51,7 @@ public class CardUtils {
         List<Card> cardsForDiscard = player.getActionDeck().stream()
                 .filter(card -> card.getSkillType().equals(skillType))
                 .limit(numberOfCards)
-                .collect(Collectors.toList());
+                .toList();
         for (Card cardForDiscard : cardsForDiscard) {
             player.getActionDeck().remove(cardForDiscard);
             player.getDiscardPile().add(cardForDiscard);
@@ -109,18 +112,18 @@ public class CardUtils {
     }
 
     public static List<Card> loadCards() {
-        if(!FileUtils.fileExists("dat/cards.ser")) {
+        if(!FileUtils.fileExists(CARDS_FILE)) {
             return saveCards();
         }
-        return FileUtils.loadObjectsFromFile("dat/cards.ser");
+        return FileUtils.loadObjectsFromFile(CARDS_FILE);
     }
 
     private static List<Card> saveCards() {
         List<Card> cards = FileUtils
                 .readRowAttributesForFile("dat/cards.txt", false).stream()
                 .map(CardUtils::buildCardFromAttributes)
-                .collect(Collectors.toList());
-        FileUtils.writeObjects("dat/cards.ser", cards);
+                .toList();
+        FileUtils.writeObjects(CARDS_FILE, cards);
         return cards;
     }
 

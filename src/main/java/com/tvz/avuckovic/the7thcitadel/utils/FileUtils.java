@@ -1,9 +1,11 @@
 package com.tvz.avuckovic.the7thcitadel.utils;
 
+import com.tvz.avuckovic.the7thcitadel.exception.ConfigurationException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +29,7 @@ public class FileUtils {
 
             return attributesPerRow;
         } catch (IOException e) {
-            throw new RuntimeException("An error occurred while reading objects!", e);
+            throw new ConfigurationException("An error occurred while reading objects!", e);
         }
     }
 
@@ -35,7 +37,7 @@ public class FileUtils {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
             return (T) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException("An error occurred while loading object!", e);
+            throw new ConfigurationException("An error occurred while loading object!", e);
         }
     }
 
@@ -43,7 +45,7 @@ public class FileUtils {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
             return (List<T>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException("An error occurred while loading objects!", e);
+            throw new ConfigurationException("An error occurred while loading objects!", e);
         }
     }
 
@@ -51,7 +53,7 @@ public class FileUtils {
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filePath))) {
             out.writeObject(object);
         } catch (IOException e) {
-            throw new RuntimeException("An error occurred while saving object!", e);
+            throw new ConfigurationException("An error occurred while saving object!", e);
         }
     }
 
@@ -59,7 +61,7 @@ public class FileUtils {
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filePath))) {
             out.writeObject(objects);
         } catch (IOException e) {
-            throw new RuntimeException("An error occurred while saving objects!", e);
+            throw new ConfigurationException("An error occurred while saving objects!", e);
         }
     }
 
@@ -69,8 +71,12 @@ public class FileUtils {
     }
 
     public static boolean deleteFile(String pathName) {
-        File file = new File(pathName);
-        return file.delete();
+        try {
+            File file = new File(pathName);
+            return Files.deleteIfExists(file.toPath());
+        } catch (IOException e) {
+            throw new ConfigurationException("Error occurred while deleting file", e);
+        }
     }
 
     public static String getDiskRoot() {

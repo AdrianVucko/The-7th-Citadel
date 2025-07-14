@@ -7,6 +7,7 @@ module com.example.the7thcitadel {
     requires java.rmi;
     requires java.naming;
     requires java.xml;
+    requires org.slf4j;
 
     opens com.tvz.avuckovic.the7thcitadel to javafx.fxml;
     exports com.tvz.avuckovic.the7thcitadel;

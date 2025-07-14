@@ -81,7 +81,7 @@ public class GameActionUtils {
         List<GameAction> gameActions = FileUtils
                 .readRowAttributesForFile("dat/game_actions.txt", true).stream()
                 .map(GameActionUtils::buildGameActionsFromAttributes)
-                .collect(Collectors.toList());
+                .toList();
         FileUtils.writeObjects("dat/game_actions.ser", gameActions);
         return gameActions;
     }

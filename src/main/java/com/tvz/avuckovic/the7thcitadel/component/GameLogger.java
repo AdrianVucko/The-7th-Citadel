@@ -5,10 +5,15 @@ import com.tvz.avuckovic.the7thcitadel.model.Player;
 import com.tvz.avuckovic.the7thcitadel.utils.SharedUtils;
 import javafx.application.Platform;
 import javafx.scene.control.TextArea;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalTime;
 import java.util.List;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Slf4j
 public class GameLogger {
 
     private static SharedLogService sharedLogService;
@@ -42,7 +47,7 @@ public class GameLogger {
         } else if (logArea != null) {
             Platform.runLater(() -> logArea.appendText(message + "\n"));
         } else {
-            System.out.println(message);
+            log.info(message);
         }
     }
 

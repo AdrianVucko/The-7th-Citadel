@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 public class ApplicationException extends RuntimeException {
-    private Alert.AlertType alertType;
+    private final Alert.AlertType alertType;
     public ApplicationException(String message) {
         super(message);
         alertType = Alert.AlertType.ERROR;
@@ -18,5 +18,6 @@ public class ApplicationException extends RuntimeException {
 
     public ApplicationException(String message, Throwable cause) {
         super(message, cause);
+        this.alertType = Alert.AlertType.ERROR;
     }
 }

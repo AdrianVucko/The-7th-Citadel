@@ -88,70 +88,84 @@ public class DocumentationUtils {
                     .toList();
 
             for (Path path : classFiles) {
-                String fullClassName = path.toString().substring(17, path.toString().length() - 6)
-                        .replace(File.separator, ".");
-
-                Class<?> clazz = Class.forName(fullClassName);
-                Constructor<?>[] constructors = clazz.getConstructors();
-
-                htmlBodyBuilder.append("<div class=\"class-block\">")
-                        .append("<div class=\"class-name\">").append(clazz.getName()).append("</div>");
-
-                for (Constructor<?> constructor : constructors) {
-                    StringBuilder params = new StringBuilder();
-                    Parameter[] parameters = constructor.getParameters();
-                    for (int i = 0; i < parameters.length; i++) {
-                        Parameter p = parameters[i];
-                        params.append(p.getType().getSimpleName()).append(" ").append(p.getName());
-                        if (i < parameters.length - 1) params.append(", ");
-                    }
-
-                    htmlBodyBuilder.append("<div class=\"constructor\">")
-                            .append(Modifier.toString(constructor.getModifiers()))
-                            .append(" ")
-                            .append(clazz.getSimpleName())
-                            .append("(").append(params).append(")")
-                            .append("</div>");
-                }
-
-                Method[] methods = clazz.getDeclaredMethods();
-                for (Method method : methods) {
-                    if (method.getDeclaringClass() == Object.class) {
-                        // toString, equals...
-                        continue;
-                    }
-                    if (Modifier.isPublic(method.getModifiers())) {
-                        StringBuilder params = new StringBuilder();
-                        Parameter[] parameters = method.getParameters();
-                        for (int i = 0; i < parameters.length; i++) {
-                            params.append(parameters[i].getType().getSimpleName())
-                                    .append(" ")
-                                    .append(parameters[i].getName());
-                            if (i < parameters.length - 1) params.append(", ");
-                        }
-
-                        htmlBodyBuilder.append("<div class=\"method\">")
-                                .append(Modifier.toString(method.getModifiers())).append(" ")
-                                .append(method.getReturnType().getSimpleName()).append(" ")
-                                .append(method.getName()).append("(").append(params).append(")")
-                                .append("</div>");
-                    }
-                }
-
-                htmlBodyBuilder.append("</div>");
+                documentClass(htmlBodyBuilder, path);
             }
 
             String htmlContent = htmlPageStart + htmlBodyBuilder + htmlPageEnd;
 
-            Path output = Path.of("doc/documentation.html");
-            if (Files.notExists(output)) {
-                Files.createDirectories(output.getParent());
-                Files.createFile(output);
-            }
-
-            Files.writeString(output, htmlContent);
+            writeDocumentation(htmlContent);
         } catch (IOException | ClassNotFoundException e) {
             throw new DocumentationGenerationException("The documentation wasn't generated!", e);
+        }
+    }
+
+    private static void writeDocumentation(String htmlContent) throws IOException {
+        Path output = Path.of("doc/documentation.html");
+        if (Files.notExists(output)) {
+            Files.createDirectories(output.getParent());
+            Files.createFile(output);
+        }
+        Files.writeString(output, htmlContent);
+    }
+
+    private static void documentClass(StringBuilder htmlBodyBuilder, Path path) throws ClassNotFoundException {
+        String fullClassName = path.toString().substring(17, path.toString().length() - 6)
+                .replace(File.separator, ".");
+
+        Class<?> clazz = Class.forName(fullClassName);
+        Constructor<?>[] constructors = clazz.getConstructors();
+
+        htmlBodyBuilder.append("<div class=\"class-block\">")
+                .append("<div class=\"class-name\">").append(clazz.getName()).append("</div>");
+
+        addConstructors(htmlBodyBuilder, clazz, constructors);
+        addMethods(htmlBodyBuilder, clazz);
+
+        htmlBodyBuilder.append("</div>");
+    }
+
+    private static void addConstructors(StringBuilder htmlBodyBuilder, Class<?> clazz, Constructor<?>[] constructors) {
+        for (Constructor<?> constructor : constructors) {
+            StringBuilder params = new StringBuilder();
+            Parameter[] parameters = constructor.getParameters();
+            for (int i = 0; i < parameters.length; i++) {
+                Parameter p = parameters[i];
+                params.append(p.getType().getSimpleName()).append(" ").append(p.getName());
+                if (i < parameters.length - 1) params.append(", ");
+            }
+
+            htmlBodyBuilder.append("<div class=\"constructor\">")
+                    .append(Modifier.toString(constructor.getModifiers()))
+                    .append(" ")
+                    .append(clazz.getSimpleName())
+                    .append("(").append(params).append(")")
+                    .append("</div>");
+        }
+    }
+
+    private static void addMethods(StringBuilder htmlBodyBuilder, Class<?> clazz) {
+        Method[] methods = clazz.getDeclaredMethods();
+        for (Method method : methods) {
+            if (method.getDeclaringClass() == Object.class) {
+                // toString, equals...
+                continue;
+            }
+            if (Modifier.isPublic(method.getModifiers())) {
+                StringBuilder params = new StringBuilder();
+                Parameter[] parameters = method.getParameters();
+                for (int i = 0; i < parameters.length; i++) {
+                    params.append(parameters[i].getType().getSimpleName())
+                            .append(" ")
+                            .append(parameters[i].getName());
+                    if (i < parameters.length - 1) params.append(", ");
+                }
+
+                htmlBodyBuilder.append("<div class=\"method\">")
+                        .append(Modifier.toString(method.getModifiers())).append(" ")
+                        .append(method.getReturnType().getSimpleName()).append(" ")
+                        .append(method.getName()).append("(").append(params).append(")")
+                        .append("</div>");
+            }
         }
     }
 }
