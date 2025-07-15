@@ -1,5 +1,6 @@
 package com.tvz.avuckovic.the7thcitadel.component;
 
+import com.tvz.avuckovic.the7thcitadel.TheSeventhCitadelApplication;
 import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
 import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
 import com.tvz.avuckovic.the7thcitadel.model.*;
@@ -28,6 +29,8 @@ public class GameMap extends GridPane {
     private boolean playerDrowned = false;
     private Field startField = null;
     private Pane progressDraw = null;
+    private Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea;
+    private GameAction winningAction;
 
     public GameMap() {
         setHgap(0);
@@ -63,6 +66,8 @@ public class GameMap extends GridPane {
 
     public boolean distributeActions(Map<ExplorationArea, List<GameAction>> actionsPerExplorationArea,
                                      GameAction winningAction) {
+        this.actionsPerExplorationArea = actionsPerExplorationArea;
+        this.winningAction = winningAction;
         return GameActionUtils.distributeActionsOnMap(cells, actionsPerExplorationArea, winningAction);
     }
 
@@ -84,7 +89,7 @@ public class GameMap extends GridPane {
 
     public void saveGameMove() {
         GameMove gameMove = buildGameMove();
-        XmlUtils.saveGameMove(gameMove);
+        GameMoveUtils.saveGameMove(gameMove);
     }
 
     private void onMapFieldClick(Field field) {
@@ -103,6 +108,7 @@ public class GameMap extends GridPane {
         drawDirection(field);
         completedFields.add(field.getCellNumber());
         saveGameMove();
+        sendMoveToOtherPlayer();
         if (field.isWinning() && actionCompleted) {
             throw new ApplicationException(Message.GAME_WON.getText(), Alert.AlertType.INFORMATION);
         }
@@ -123,10 +129,10 @@ public class GameMap extends GridPane {
         if(isGameWon()) {
             throw new ApplicationException(Message.GAME_WON.getText(), Alert.AlertType.INFORMATION);
         }
-
         if(Player.getInstance().getHealth() == 0) {
             throw new ApplicationException(Message.ALREADY_DEAD.getText());
         }
+        checkMoveTurn();
 
         boolean fieldInWater = field.isFieldInWater();
         if(fieldInWater && waterWarningTriggered) {
@@ -141,7 +147,6 @@ public class GameMap extends GridPane {
         if (playerDrowned) {
             throw new ApplicationException(Message.PLAYER_DROWNED.getText());
         }
-
         if(field.isRevealed()) {
             GameLogger.info("This place is already discovered!");
             return false;
@@ -172,7 +177,24 @@ public class GameMap extends GridPane {
         return new BigDecimal("100.00").divide(divisor, 2, RoundingMode.UP);
     }
 
-    private GameMove buildGameMove() {
+    public GameMove buildGameMove() {
         return GameStateUtils.buildGameMove(completedFields);
+    }
+
+    public void checkMoveTurn() {
+        if(!Player.getInstance().isOnMove()) {
+            throw new ApplicationException(Message.NOT_YOUR_MOVE.getText());
+        } else if (!FileUtils.fileExists(XmlUtils.GAME_MOVES_XML_FILE_NAME) &&
+                TheSeventhCitadelApplication.applicationConfiguration.getPlayerType().equals(PlayerType.PLAYER_TWO)) {
+            throw new ApplicationException("Player One needs to make first move for game to start");
+        }
+    }
+
+    private void sendMoveToOtherPlayer() {
+        if (GamePlayThreadsUtils.isMultiplayer()) {
+            GameMove gameMove = buildGameMove();
+            GameState gameState = GameStateUtils.buildGameState(actionsPerExplorationArea, winningAction, gameMove);
+            GamePlayThreadsUtils.sendMove(gameState, true);
+        }
     }
 }
