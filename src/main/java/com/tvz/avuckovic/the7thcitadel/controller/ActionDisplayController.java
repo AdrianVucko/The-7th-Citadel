@@ -17,7 +17,7 @@ public class ActionDisplayController {
         descriptionLabel.setText("Action: " + action.description());
         requiredPointsLabel.setText("Minimum required: " + action.pointsNeeded() + "⭐");
         skillLabel.setText("Skill: " + action.requiredSkill());
-        pointsLabel.setText("Skill Cards Needed: " + action.pointsNeeded());
+        pointsLabel.setText("Skill Cards Needed: " + action.skillsNeeded());
         gainLabel.setText("Gain on Success: +" + action.healthGain() + " HP");
         lossLabel.setText("Loss on Failure: -" + action.healthLoss() + " HP");
     }

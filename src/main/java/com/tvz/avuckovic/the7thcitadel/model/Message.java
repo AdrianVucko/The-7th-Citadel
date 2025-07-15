@@ -16,6 +16,7 @@ public enum Message {
     GAME_WON("You have won!!! Congratulations!"),
     END("You died!"),
     ALREADY_DEAD("You can't make moves because you are dead!"),
+    NOT_YOUR_MOVE("Not your move yet"),
     SOMETHING_HAPPENED("Something happened"),
     SUPPORT("Error occurred while setting up application! Contact support"),
     UNKNOWN_ERROR("An unknown error occurred.");

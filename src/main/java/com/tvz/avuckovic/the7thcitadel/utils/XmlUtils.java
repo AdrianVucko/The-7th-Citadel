@@ -20,31 +20,33 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class XmlUtils {
     public static final String GAME_MOVES_XML_FILE_NAME = "dat/gameMoves.xml";
 
-    public static void saveGameMove(GameMove gameMove) {
-        List<GameMove> gameMoves = new ArrayList<>();
-        if(FileUtils.fileExists(GAME_MOVES_XML_FILE_NAME)) {
-            gameMoves.addAll(readGameMovesFromXmlFile());
-        }
-        gameMoves.add(gameMove);
-        saveGameMovesToXmlFile(gameMoves);
-    }
-
-    public static void clearMoves() {
-        if(FileUtils.fileExists(GAME_MOVES_XML_FILE_NAME)) {
-            boolean deleted = FileUtils.deleteFile(GAME_MOVES_XML_FILE_NAME);
-            if(!deleted) {
-                throw new ConfigurationException("Deleting game moves failed");
+    public static Optional<GameMove> readLastGameMove() {
+        try {
+            if(!FileUtils.fileExists(GAME_MOVES_XML_FILE_NAME)) {
+                return Optional.empty();
             }
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newDefaultInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document xmlDoc = db.parse(new File(GAME_MOVES_XML_FILE_NAME));
+
+            Element rootElement = xmlDoc.getDocumentElement();
+            NodeList gameMovesNodeList = rootElement.getElementsByTagName("GameMove");
+            if(gameMovesNodeList.getLength() == 0) {
+                return Optional.empty();
+            }
+            return Optional.of(buildGameMoveFromElement((Element) gameMovesNodeList.item(gameMovesNodeList.getLength() - 1)));
+        } catch(Exception e) {
+            throw new ConfigurationException("There was an error while reading XML file with game moves.", e);
         }
     }
 
     public static void saveGameMovesToXmlFile(List<GameMove> gameMoves) {
-
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
@@ -78,15 +80,13 @@ public class XmlUtils {
             DOMSource domSource = new DOMSource(xmlDoc);
             StreamResult streamResult = new StreamResult(new File(GAME_MOVES_XML_FILE_NAME));
             transformer.transform(domSource, streamResult);
-        }
-        catch(Exception e) {
+        } catch(Exception e) {
             throw new ConfigurationException("There was an error while creating XML file with game moves.", e);
         }
     }
 
     public static List<GameMove> readGameMovesFromXmlFile() {
         List<GameMove> gameMoves = new ArrayList<>();
-
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newDefaultInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
@@ -100,11 +100,9 @@ public class XmlUtils {
                 gameMoves.add(buildGameMoveFromElement(gameMoveElement));
             }
 
-        }
-        catch(Exception e) {
+        } catch(Exception e) {
             throw new ConfigurationException("There was an error while reading XML file with game moves.", e);
         }
-
         return gameMoves;
     }
 
@@ -162,7 +160,6 @@ public class XmlUtils {
         if(name == null) {
             return null;
         }
-
         player.setName(name.getTextContent());
         player.setHealth(getFirstIntegerFromElement(playerElement, "health"));
         player.setMaxHealth(getFirstIntegerFromElement(playerElement, "maxHealth"));
