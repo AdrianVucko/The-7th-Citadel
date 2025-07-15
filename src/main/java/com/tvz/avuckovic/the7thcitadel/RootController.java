@@ -4,6 +4,8 @@ import com.tvz.avuckovic.the7thcitadel.controller.MainController;
 import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
 import com.tvz.avuckovic.the7thcitadel.exception.ConfigurationException;
 import com.tvz.avuckovic.the7thcitadel.model.*;
+import com.tvz.avuckovic.the7thcitadel.thread.PlayerOneServerThread;
+import com.tvz.avuckovic.the7thcitadel.thread.PlayerTwoServerThread;
 import com.tvz.avuckovic.the7thcitadel.utils.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -26,10 +28,11 @@ public class RootController implements Initializable {
     public StackPane sceneContainer;
 
     private Object currentController;
-    private GameState replayedState;
+    private GameState currentState;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        startPlayerThreads();
         newGame();
     }
 
@@ -46,7 +49,9 @@ public class RootController implements Initializable {
     }
 
     public void newGame() {
-        XmlUtils.clearMoves();
+        if (!PlayerType.PLAYER_TWO.name().equals(TheSeventhCitadelApplication.applicationConfiguration.getPlayerType().name())) {
+            GameMoveUtils.clearMoves();
+        }
         clearLogger();
         displayScene(ActiveScene.MAIN, GameMode.NONE);
     }
@@ -59,12 +64,19 @@ public class RootController implements Initializable {
         if(!FileUtils.fileExists("dat/savedGame.ser")) {
             throw new ApplicationException("Game needs to be saved first");
         }
-        XmlUtils.clearMoves();
+        GameMoveUtils.clearMoves();
+        currentState = GameStateUtils.loadGame();
+        GamePlayThreadsUtils.sendMove(currentState, false);
+        displayScene(ActiveScene.MAIN, GameMode.LOAD);
+    }
+
+    public void loadGameManually(GameState gameState) {
+        currentState = gameState;
         displayScene(ActiveScene.MAIN, GameMode.LOAD);
     }
 
     public void replayGame() {
-        replayedState = getCurrentController(MainController.class)
+        currentState = getCurrentController(MainController.class)
                 .map(MainController::replayedState)
                 .orElseThrow(() -> new ConfigurationException("Replay is not possible from other pages"));
         displayScene(ActiveScene.MAIN, GameMode.REPLAY);
@@ -73,7 +85,7 @@ public class RootController implements Initializable {
     private void displayScene(ActiveScene activeScene, GameMode gameMode) {
         try {
             saveMenuItem.setDisable(activeScene != ActiveScene.MAIN);
-            replayMenuItem.setDisable(activeScene != ActiveScene.MAIN);
+            replayMenuItem.setDisable(activeScene != ActiveScene.MAIN || isMultiplayer());
             FXMLLoader loader = new FXMLLoader(getClass().getResource(activeScene.getFilePath()));
             Parent content = loader.load();
             currentController = loader.getController();
@@ -86,13 +98,12 @@ public class RootController implements Initializable {
 
     private void initializeMainScene(MainController mainController, GameMode gameMode) {
         if(gameMode.equals(GameMode.LOAD)) {
-            GameState gameState = GameStateUtils.loadGame();
-            mainController.init(gameState);
+            mainController.init(currentState, GameMode.LOAD);
         } else if (gameMode.equals(GameMode.REPLAY)) {
-            if(replayedState == null) {
+            if(currentState == null) {
                 throw new ConfigurationException("Replayed state does not exist");
             }
-            mainController.init(replayedState);
+            mainController.init(currentState, GameMode.REPLAY);
         } else {
             mainController.init();
         }
@@ -101,6 +112,20 @@ public class RootController implements Initializable {
     private void clearLogger() {
         if (isMultiplayer()) {
             SharedUtils.clearLogs();
+        }
+    }
+
+    private void startPlayerThreads() {
+        if (PlayerType.PLAYER_TWO.name().equals(TheSeventhCitadelApplication.applicationConfiguration.getPlayerType().name()))
+        {
+            PlayerTwoServerThread playerTwoServerThread = new PlayerTwoServerThread(this);
+            Thread thread = new Thread(playerTwoServerThread);
+            thread.start();
+        } else if (PlayerType.PLAYER_ONE.name().equals(TheSeventhCitadelApplication.applicationConfiguration.getPlayerType().name()))
+        {
+            PlayerOneServerThread playerOneServerThread = new PlayerOneServerThread(this);
+            Thread thread = new Thread(playerOneServerThread);
+            thread.start();
         }
     }
 

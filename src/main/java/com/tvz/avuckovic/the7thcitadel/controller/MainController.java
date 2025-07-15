@@ -6,7 +6,6 @@ import com.tvz.avuckovic.the7thcitadel.component.CardCell;
 import com.tvz.avuckovic.the7thcitadel.component.GameLogger;
 import com.tvz.avuckovic.the7thcitadel.component.GameMap;
 import com.tvz.avuckovic.the7thcitadel.component.PlayerDisplay;
-import com.tvz.avuckovic.the7thcitadel.constants.GameConstants;
 import com.tvz.avuckovic.the7thcitadel.exception.ApplicationException;
 import com.tvz.avuckovic.the7thcitadel.model.*;
 import com.tvz.avuckovic.the7thcitadel.utils.*;
@@ -41,18 +40,17 @@ public class MainController {
 
     public void init() {
         allCards = CardUtils.loadCards();
-        List<Card> playerCards = CardUtils.drawShuffledActionCards(allCards);
-        initializePlayer(playerCards);
+        initializePlayer();
         cardsListView.setCellFactory(list -> new CardCell());
-        cardsListView.getItems().setAll(playerCards);
+        cardsListView.getItems().setAll(Player.getInstance().getActionDeck());
         progressDraw.setPickOnBounds(false);
         gameMap.connectComponents(progressDraw);
         initializeChatAndLog();
         initializeActionFields(null);
-        gameMap.saveGameMove();
+        Platform.runLater(this::saveFirstTimeForPlayerOne);
     }
 
-    public void init(GameState gameState) {
+    public void init(GameState gameState, GameMode gameMode) {
         allCards = CardUtils.loadCards();
         loadPlayer(gameState);
         cardsListView.setCellFactory(list -> new CardCell());
@@ -63,11 +61,14 @@ public class MainController {
         initializeActionFields(gameState);
         Platform.runLater(() -> {
             gameMap.markCompletedFields(gameState.getCompletedFields());
-            gameMap.saveGameMove();
+            if(!gameMode.equals(GameMode.REPLAY)) {
+                gameMap.saveGameMove();
+            }
         });
     }
 
     public void acquireSkill() {
+        gameMap.checkMoveTurn();
         Player player = Player.getInstance();
         List<Card> allPlayerCards = new ArrayList<>();
         allPlayerCards.addAll(player.getActionDeck());
@@ -78,9 +79,11 @@ public class MainController {
         decrementPlayerHealth();
         PlayerDisplay.fillPlayerLabels();
         gameMap.saveGameMove();
+        sendMoveToOtherPlayer();
     }
 
     public void useSkill() {
+        gameMap.checkMoveTurn();
         getSelectedCard().ifPresentOrElse(card -> {
             String logEntry = String.format("🃏 Skill Used — [ID: %s] \"%s\"", card.getId(), card.getDescription());
             GameLogger.info(logEntry);
@@ -95,37 +98,47 @@ public class MainController {
             incrementPlayerHealth();
             PlayerDisplay.fillPlayerLabels();
             gameMap.saveGameMove();
+            sendMoveToOtherPlayer();
         }, () -> GameLogger.warn(Message.NO_SKILL_SELECTED.getText()));
     }
 
     public void handleSendMessage() {
         String message = messageInput.getText().trim();
-        if (isMultiplayer() && !message.isEmpty()) {
+        if (GamePlayThreadsUtils.isMultiplayer() && !message.isEmpty()) {
             SharedUtils.sendChatMessage(message, chatRemoteService);
         }
         messageInput.clear();
     }
 
     public void saveGame() {
-        if(isMultiplayer()) {
-            //TODO: To be implemented
-        } else {
-            GameStateUtils.save(actionsPerExplorationArea, winningAction, gameMap.getCompletedFields());
-        }
+        GameStateUtils.save(actionsPerExplorationArea, winningAction, gameMap.getCompletedFields());
     }
 
     public GameState replayedState() {
-        if(!FileUtils.fileExists(XmlUtils.GAME_MOVES_XML_FILE_NAME)) {
-            throw new ApplicationException("File that contains moves doesn't exist");
-        }
-        List<GameMove> gameMoves = XmlUtils.readGameMovesFromXmlFile();
-        if (gameMoves.size() < 2) {
-            throw new ApplicationException("You need to make a move first");
-        }
-        List<GameMove> replayedGameMoves = gameMoves.subList(0, gameMoves.size() - 1);
-        XmlUtils.saveGameMovesToXmlFile(replayedGameMoves);
-        GameMove replayedGameMove = replayedGameMoves.get(replayedGameMoves.size() - 1);
+        GameMove replayedGameMove = GameMoveUtils.replayMove();
         return GameStateUtils.buildGameState(actionsPerExplorationArea, winningAction, replayedGameMove);
+    }
+
+    private void sendMoveToOtherPlayer() {
+        if (GamePlayThreadsUtils.isMultiplayer()) {
+            GameMove gameMove = gameMap.buildGameMove();
+            GameState gameState = GameStateUtils.buildGameState(actionsPerExplorationArea, winningAction, gameMove);
+            GamePlayThreadsUtils.sendMove(gameState, false);
+        }
+    }
+
+    private void saveFirstTimeForPlayerOne() {
+        if(GamePlayThreadsUtils.isMultiplayer() &&
+                !TheSeventhCitadelApplication.applicationConfiguration.getPlayerType().equals(PlayerType.PLAYER_TWO)) {
+            Player playerOne = Player.getInstance();
+            Player playerTwo = Player.createFilledPlayer(allCards, false);
+            GameMoveUtils.saveFirstTimeForPlayerOne(gameMap.getCompletedFields(), playerOne, playerTwo);
+
+        } else if (GamePlayThreadsUtils.isMultiplayer()) {
+            throw new ApplicationException("Player One needs to make first move for game to start");
+        } else {
+            gameMap.saveGameMove();
+        }
     }
 
     private void initializeActionFields(GameState gameState) {
@@ -148,17 +161,14 @@ public class MainController {
 
     private void loadPlayer(GameState gameState) {
         PlayerDisplay.attach(playerName, playerHealth, cardsListView);
-        Player.copyAttributes(gameState.getPlayerOne());
+        Player.copyAttributes(gameState);
         PlayerDisplay.fillPlayerLabels();
     }
 
-    private void initializePlayer(List<Card> playerCards) {
+    private void initializePlayer() {
         PlayerDisplay.attach(playerName, playerHealth, cardsListView);
-        Player player = Player.getInstance();
-        player.setName(CardUtils.assignPlayerName(allCards));
-        player.setHealth(GameConstants.Player.START_HEALTH);
-        player.setMaxHealth(GameConstants.Player.MAX_HEALTH);
-        player.getActionDeck().addAll(playerCards);
+        Player playerOne = Player.createFilledPlayer(allCards, true);
+        Player.copyAttributes(playerOne);
         PlayerDisplay.fillPlayerLabels();
     }
 
@@ -180,14 +190,10 @@ public class MainController {
     }
 
     private void initializeChatAndLog() {
-        if (isMultiplayer()) {
+        if (GamePlayThreadsUtils.isMultiplayer()) {
             chatRemoteService = SharedUtils.initializeChatAndLogTimeline(chatArea, gameLog);
         } else {
             GameLogger.attach(gameLog);
         }
-    }
-
-    private static boolean isMultiplayer() {
-        return !TheSeventhCitadelApplication.applicationConfiguration.getPlayerType().equals(PlayerType.SINGLE_PLAYER);
     }
 }
